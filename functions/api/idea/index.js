@@ -6,13 +6,38 @@
 // Secret lives in the Pages project env (RESEND_API_KEY), never in the repo -
 // same pattern as MUSE_CONNECTOR_TOKEN in /api/shop-inventory.
 
-const TO = ["rook@mail.instinct.com", "asaxton1010@gmail.com"];
+// Recipients: set IDEA_TO (comma-separated) in the Pages project env so the
+// inboxes are not read out of this public repo. Until it is set, the old
+// list below keeps mail flowing. Remove the fallback once IDEA_TO is live.
+const FALLBACK_TO = ["rook@mail.instinct.com", "asaxton1010@gmail.com"];
 const FROM = "Saxton Showcase <ideas@saxtonshowcase.com>";
+const EMAIL = /^[^\s@<>,;"]{1,64}@[A-Za-z0-9.-]{1,190}\.[A-Za-z]{2,24}$/;
+const MAX_BYTES = 32 * 1024;
+
+function recipients(env) {
+  const list = String((env && env.IDEA_TO) || "").split(",")
+    .map(function (s) { return s.trim(); })
+    .filter(function (s) { return EMAIL.test(s); });
+  return list.length ? list : FALLBACK_TO;
+}
+
+// One line, no control characters: keeps the subject and labels clean.
+function flat(v, max) {
+  return String(v || "").replace(/[\u0000-\u001f\u007f]+/g, " ").trim().slice(0, max);
+}
+
+// Browsers send Origin on every POST. A post from another site's page is
+// refused; tools with no Origin (curl, the no-JS form in older browsers) pass.
+function foreignOrigin(request) {
+  const origin = request.headers.get("origin");
+  if (!origin || origin === "null") return false;
+  try { return new URL(origin).host !== new URL(request.url).host; } catch (e) { return true; }
+}
 
 function json(obj, status) {
   return new Response(JSON.stringify(obj), {
     status,
-    headers: { "content-type": "application/json" }
+    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff" }
   });
 }
 
@@ -30,6 +55,8 @@ function limited(ip) {
 export async function onRequest(context) {
   const request = context.request;
   if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405);
+  if (foreignOrigin(request)) return json({ error: "forbidden" }, 403);
+  if (Number(request.headers.get("content-length") || 0) > MAX_BYTES) return json({ error: "too_large" }, 413);
 
   let fields;
   const ct = request.headers.get("content-type") || "";
@@ -44,14 +71,16 @@ export async function onRequest(context) {
     return json({ error: "bad_request" }, 400);
   }
 
+  if (!fields || typeof fields !== "object" || Array.isArray(fields)) return json({ error: "bad_request" }, 400);
+
   // Honeypot: both forms hide a "website" field from people; bots fill it.
   // Pretend success so they move on, but mail nothing.
   if (String(fields.website || "").trim() !== "") return json({ ok: true });
 
   // Two shapes: front door (name/contact/idea) and showcase contract
   // (idea/email/page). idea is the only required field.
-  const name = String(fields.name || "").trim().slice(0, 100);
-  const contact = String(fields.contact || fields.email || "").trim().slice(0, 200);
+  const name = flat(fields.name, 100);
+  const contact = flat(fields.contact || fields.email, 200);
   const idea = String(fields.idea || "").trim();
   if (idea.length < 5 || idea.length > 2000) return json({ error: "missing_fields" }, 400);
 
@@ -66,7 +95,7 @@ export async function onRequest(context) {
     "",
     "Name: " + (name || "(not given)"),
     "Contact: " + (contact || "(not given)"),
-    fields.page ? "Page: " + String(fields.page).slice(0, 100) : "",
+    fields.page ? "Page: " + flat(fields.page, 100) : "",
     "",
     idea,
     "",
@@ -81,8 +110,8 @@ export async function onRequest(context) {
     },
     body: JSON.stringify({
       from: FROM,
-      to: TO,
-      reply_to: contact.indexOf("@") > -1 ? contact : undefined,
+      to: recipients(context.env),
+      reply_to: EMAIL.test(contact) ? contact : undefined,
       subject: "New idea from " + (name || "a visitor") + " - Saxton Showcase",
       text: lines.join("\n")
     })
