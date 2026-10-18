@@ -1,0 +1,38 @@
+# Cloudflare Pages response headers. Static files only; Pages Functions
+# (/api/*, /builds/* cut-list) set their own headers.
+# Builds load in a same-origin iframe on the homepage (?preview=...), so
+# framing is allowed from this origin only. No CSP here: the builds rely on
+# inline scripts and Blob downloads, and a site-wide policy is a separate,
+# tested change.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: SAMEORIGIN
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Strict-Transport-Security: max-age=31536000
+
+/LICENSE
+  Content-Type: text/plain; charset=utf-8
+
+/DESIGN.md
+  X-Robots-Tag: noindex, nofollow
+
+/index-previous-*
+  X-Robots-Tag: noindex, nofollow
+
+/about/index-previous-*
+  X-Robots-Tag: noindex, nofollow
+
+/apps/*
+  X-Robots-Tag: noindex, nofollow
+
+/deck-check/*
+  X-Robots-Tag: noindex, nofollow
+
+/lucas-dd-289c2c29/*
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-store
+
+/*.zip
+  X-Robots-Tag: noindex

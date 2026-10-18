@@ -1,0 +1,6 @@
+# Unlisted pages are kept out of search with noindex (page tags and _headers),
+# not listed here, so this file does not point anyone at them.
+User-agent: *
+Disallow: /api/
+
+Sitemap: https://saxtonshowcase.com/sitemap.xml

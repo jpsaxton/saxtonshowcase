@@ -2,10 +2,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>Deck Check - Saxton Showcase</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Atkinson+Hyperlegible:wght@400;700&family=Martian+Mono:wght@400&display=swap">
 <style>
+/* Same self-hosted faces as the front door (/fonts/, SIL OFL), so the page makes no outside request. */
+@font-face{font-family:"Unbounded";src:url(/fonts/Unbounded.woff2) format("woff2");font-weight:700 800;font-display:swap}
+@font-face{font-family:"Atkinson Hyperlegible";src:url(/fonts/AtkinsonHyperlegible-400.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Atkinson Hyperlegible";src:url(/fonts/AtkinsonHyperlegible-700.woff2) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"Martian Mono";src:url(/fonts/MartianMono-400.woff2) format("woff2");font-weight:400;font-display:swap}
 /* Daylight: lilac paper, candy pieces with ink outlines like stickers. Same language as the front door. */
 :root{
   color-scheme:light;
@@ -125,13 +127,13 @@ footer .word{font-size:16px;margin-bottom:8px;color:var(--text)}
         <label class="opt"><input type="radio" name="format" value="Draft / Sealed"><span>Draft &amp; sealed</span></label>
         <label class="opt"><input type="radio" name="format" value="Other" id="fmtOther"><span>Something else</span></label>
       </div>
-      <div id="otherWrap"><input type="text" name="format_other" maxlength="100" placeholder="What do you play, then?"></div>
+      <div id="otherWrap"><input type="text" name="format_other" maxlength="100" aria-label="Which format, then?" placeholder="What do you play, then?"></div>
     </fieldset>
 
     <fieldset class="cmdr-only" id="cmdrWrap">
       <legend>Got a commander in mind?</legend>
       <p class="hint">A name, a few you're torn between, or 'surprise me.'</p>
-      <input type="text" name="commander" maxlength="200" disabled>
+      <input type="text" name="commander" maxlength="200" aria-label="Commander in mind" disabled>
     </fieldset>
 
     <fieldset>
@@ -213,7 +215,7 @@ footer .word{font-size:16px;margin-bottom:8px;color:var(--text)}
       </div>
       <div id="listWrap">
         <p class="hint">Link a Moxfield/Archidekt list or just tell us what's in the box.</p>
-        <input type="text" name="deck_list" maxlength="1000" disabled>
+        <input type="text" name="deck_list" maxlength="1000" aria-label="Deck list link, or what is in the box" disabled>
       </div>
       <div class="sub">
         <p class="q">Proxies OK?</p>
@@ -238,7 +240,7 @@ footer .word{font-size:16px;margin-bottom:8px;color:var(--text)}
     <fieldset>
       <legend>The ramble</legend>
       <p class="hint">Anything else. Pet cards you refuse to cut, commanders you've always wanted to build, strategies you hate losing to, house rules, how your table actually plays.</p>
-      <textarea name="ramble" maxlength="4000" placeholder="Talk deck. Nobody's grading this."></textarea>
+      <textarea name="ramble" maxlength="4000" aria-label="The ramble: anything else" placeholder="Talk deck. Nobody's grading this."></textarea>
     </fieldset>
 
     <fieldset>
