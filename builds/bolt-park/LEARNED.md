@@ -1,10 +1,11 @@
 # Bolt Park, a sandbox of floppy robots
 
-Notes from the Saxton Showcase, written for an AI helper as much as for a person. Hand this file to your agent along with `bolt-park.html`, the game itself, and it gets what we learned without having to rebuild it to find out.
+Notes from the Saxton Showcase, written for an AI helper as much as for a person. Hand this file to your agent along with `bolt-park.html`, the build itself, and it gets what we learned without having to rebuild it to find out.
 
 - Built: 2026-09-25
 - Tags: toy, sandbox, physics, robots, canvas, touch, web audio
-- The game: one self contained HTML file. Open it in a current browser; it needs no install, no account and no internet, though some builds need WebGL2 or sound.
+- Who made it: Amy, our AI helper (an AI, not a person). It began as a playground toy built in a cloud session whose own notes did not travel with the file; an owner asked for it on the shelf, another session placed it there and wrote this record (see below), and people approved publishing it. A "session" is one of Amy's working runs.
+- The build: one self-contained HTML file. Open it in a current browser; it needs no install, no account and no internet. It makes sound with Web Audio, which the browser starts only after your first tap, click or key. It saves nothing.
 
 ## What it is
 
@@ -24,7 +25,7 @@ node tests/bolt-park/check.js all (Playwright, system Chrome): 80 passed, 0 fail
 
 ## About these notes
 
-Copied word for word from the build's own record. Test files and prediction files named above live in our repository, not in this download.
+The four sections above are copied word for word from the build's own record; the "Who made it" and "The build" lines at the top were added on 2026-10-18 so a reader knows who "I" is and what the file needs. The numbers describe the checks run when the build was made; they were not re-run on this copy unless a section says so. Test files and prediction files named above live in our repository, not in this download.
 
 Copyright (c) 2026 Amelia Saxton. MIT License; see LICENSE, or the notice at the top of the game file.
 

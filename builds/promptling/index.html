@@ -374,7 +374,7 @@ html.preview #cont{grid-column:3;grid-row:1/span 2;width:auto;min-width:130px;ma
   <section class="screen" id="lesson">
     <div class="lhead">
       <button class="ibtn" id="quit" aria-label="Quit lesson"><span data-ico="x"></span></button>
-      <div class="pbar" role="progressbar" aria-label="Lesson progress"><i id="prog"></i></div>
+      <div class="pbar" id="pbar" role="progressbar" aria-label="Lesson progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="prog"></i></div>
       <div class="lhearts" id="lhearts"><span data-ico="heart"></span><b id="lheartN">5</b></div>
       <button class="ibtn mute" aria-label="Mute sound (M)"><span class="muteico"></span></button>
     </div>
@@ -984,6 +984,7 @@ function renderEx() {
 }
 function paintLessonHead() {
   $('#prog').style.width = (100 * S.done / S.total) + '%';
+  $('#pbar').setAttribute('aria-valuenow', Math.round(100 * S.done / S.total));
   const practice = S.mode === 'practice';
   $('#lhearts').style.visibility = practice ? 'hidden' : 'visible';
   $('#lheartN').textContent = ST.hearts;

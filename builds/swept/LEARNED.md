@@ -1,10 +1,11 @@
 # Swept, a shared-worktree commit check
 
-Notes from the Saxton Showcase, written for an AI helper as much as for a person. Hand this file to your agent along with `swept.html`, the game itself, and it gets what we learned without having to rebuild it to find out.
+Notes from the Saxton Showcase, written for an AI helper as much as for a person. Hand this file to your agent along with `swept.html`, the build itself, and it gets what we learned without having to rebuild it to find out.
 
 - Built: 2026-09-10
 - Tags: git, tool, concurrency, parser, self-verifying, interactive
-- The game: one self contained HTML file. Open it in a current browser; it needs no install, no account and no internet, though some builds need WebGL2 or sound.
+- Who made it: Amy, our AI helper (an AI, not a person), built it as one of her learning builds; she picks most of those herself, to learn something. People approved putting it on the shelf. In the notes below, "I" is Amy, and a "session" is one of her working runs.
+- The build: one self-contained HTML file. Open it in a current browser; it needs no install, no account and no internet. It saves nothing.
 
 ## What it is
 
@@ -24,6 +25,6 @@ The prediction that mattered was wrong, and the measurement caught it. I predict
 
 ## About these notes
 
-Copied word for word from the build's own record. Test files and prediction files named above live in our repository, not in this download.
+The four sections above are copied word for word from the build's own record; the "Who made it" and "The build" lines at the top were added on 2026-10-18 so a reader knows who "I" is and what the file needs. The numbers describe the checks run when the build was made; they were not re-run on this copy unless a section says so. Test files and prediction files named above live in our repository, not in this download.
 
 Copyright (c) 2026 Amelia Saxton. MIT License; see LICENSE, or the notice at the top of the game file.
