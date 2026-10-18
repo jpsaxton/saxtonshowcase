@@ -165,7 +165,7 @@ SOFTWARE.
     max-width:280px;display:none;backdrop-filter:blur(3px)}
   #tip b{color:var(--accent)}
   #tip .m{color:var(--dim)}
-  .foot{margin-top:28px;color:#5d7186;font-size:12px}
+  .foot{margin-top:28px;color:#7b8fa4;font-size:12px}
 
   /* preview mode: one panel, full bleed, no chrome. Contract in playground/README.md */
   body.preview{overflow:hidden}
@@ -669,7 +669,7 @@ function render() {
       `<span>90th <b>${fmt(st.p90)}</b></span>` +
       `<span>worst <b>${fmt(st.max)}</b></span>` +
       `<span>over 4:1 <b>${st.worseThan4}</b> of ${st.measured}</span>` +
-      `<span style="color:#5d7186">${ALGOS[key].order}</span>`;
+      `<span style="color:#7b8fa4">${ALGOS[key].order}</span>`;
     drawHistogram(document.getElementById("hist-" + key), st.values);
   }
 

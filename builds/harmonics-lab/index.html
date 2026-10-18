@@ -894,8 +894,13 @@ SOFTWARE.
   keysEl.addEventListener("pointercancel", releaseAll);
 
   const held = new Set();
+  let tabbed = false;
+  window.addEventListener("pointerdown", () => { tabbed = false; }, true);
   window.addEventListener("keydown", (e) => {
     if (e.target.tagName === "INPUT" || e.target.classList.contains("bar")) return;
+    // A button reached with Tab keeps its own Space; after a mouse click Space still means drone.
+    if (e.key === "Tab") { tabbed = true; return; }
+    if (e.code === "Space" && e.target.tagName === "BUTTON" && tabbed) return;
     if (e.code === "Space") { e.preventDefault(); toggleDrone(); return; }
     const i = KEYCHARS.indexOf(e.key.toLowerCase());
     if (i < 0 || held.has(e.key)) return;
@@ -905,6 +910,15 @@ SOFTWARE.
     const i = KEYCHARS.indexOf(e.key.toLowerCase());
     if (i < 0) return;
     held.delete(e.key); noteOff("k" + i);
+  });
+  // A key held while the window loses focus never sends its keyup, so the note
+  // would ring forever. Let go of played notes on blur, and hush the engine
+  // while the tab is hidden (the drone picks up again when you come back).
+  window.addEventListener("blur", () => { held.clear(); releaseAll(); });
+  document.addEventListener("visibilitychange", () => {
+    if (!ctx) return;
+    if (document.hidden) { held.clear(); releaseAll(); ctx.suspend(); }
+    else if (voices.size) ctx.resume();
   });
 
   let raf = null;

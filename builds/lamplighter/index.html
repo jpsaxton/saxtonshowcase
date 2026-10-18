@@ -1,3 +1,4 @@
+<!doctype html>
 <!--
 Saxton Showcase build. Copyright (c) 2026 Amelia Saxton. Released under the MIT License:
 
@@ -95,7 +96,9 @@ SOFTWARE.
   sixtieths) and makes the last frame of grace depend on rounding. Frames make the boundary
   decidable, which is what let the suite assert it at all.
 -->
+<html lang="en">
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lamplighter</title>
 <style>
   :root {
@@ -103,7 +106,7 @@ SOFTWARE.
     --ink-2: #121829;
     --line: #263149;
     --text: #c8d2e8;
-    --dim: #6b7794;
+    --dim: #7c88a6;
     --warm: #ffb347;
     --warm-dim: #b07a34;
   }
@@ -129,7 +132,8 @@ SOFTWARE.
     background: var(--ink); border: 1px solid var(--line); border-radius: 8px;
     image-rendering: auto; touch-action: none; outline: none;
   }
-  canvas#view:focus-visible { border-color: var(--warm-dim); }
+  canvas#view:focus-visible { border-color: var(--warm); outline: 2px solid var(--warm); outline-offset: 2px; }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--warm); outline-offset: 2px; }
 
   .hud {
     display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
@@ -178,26 +182,42 @@ SOFTWARE.
   .note { margin-top: 16px; color: var(--dim); font-size: 12.5px; line-height: 1.65; max-width: 66ch; }
   .note b { color: var(--text); font-weight: 600; }
 
+  /* Touch pad: only on touch screens, so a phone can actually play. */
+  .pad { display: none; margin-top: 10px; gap: 10px; align-items: stretch; user-select: none; -webkit-user-select: none; }
+  .pad button { min-width: 64px; min-height: 56px; font-size: 20px; touch-action: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+  .pad .gap { flex: 1 1 auto; }
+  .pad button.held { border-color: var(--warm); color: var(--warm); background: #1b2236; }
+  @media (pointer: coarse) { .pad { display: flex; } .keys-hint { display: none; } }
+  body.touch .pad { display: flex; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
   /* Preview mode: the index card renders this page in a short 2:1 frame. Strip the chrome and
      let the canvas fill the band, so the thumbnail is the game and not a header. */
   html.preview, body.preview { padding: 0; margin: 0; background: var(--ink); overflow: hidden; }
   body.preview .wrap { max-width: none; }
-  body.preview header, body.preview .hud, body.preview .panel, body.preview .note { display: none !important; }
+  body.preview header, body.preview .hud, body.preview .pad, body.preview .panel, body.preview .note { display: none !important; }
   body.preview canvas#view { border: 0; border-radius: 0; width: 100vw; height: auto; }
 </style>
 
 <div class="wrap">
   <header>
     <h1>Lamplighter</h1>
-    <span class="sub">light every lantern &middot; arrows or WASD &middot; space to jump &middot; R restarts &middot; F for feel</span>
+    <span class="sub">light every lantern<span class="keys-hint"> &middot; arrows or WASD &middot; space to jump &middot; R restarts &middot; F for feel</span></span>
   </header>
 
   <div class="stage">
     <canvas id="view" width="672" height="384" tabindex="0" aria-label="Lamplighter game"></canvas>
   </div>
 
+  <div class="pad" id="pad" aria-label="Touch controls">
+    <button type="button" data-act="left" aria-label="Move left">&#9664;</button>
+    <button type="button" data-act="right" aria-label="Move right">&#9654;</button>
+    <span class="gap"></span>
+    <button type="button" data-act="jump" aria-label="Jump">Jump</button>
+  </div>
+
   <div class="hud">
-    <span class="roomname" id="roomName">First Light</span>
+    <span class="roomname" id="roomName" aria-live="polite">First Light</span>
     <span class="lanterns" id="lanternCount">0 / 3 lit</span>
     <span class="spacer"></span>
     <select id="roomPick" aria-label="Jump to room"></select>
@@ -979,7 +999,7 @@ class Game {
     if (this.transition === 0 && this.sim.complete()) this.transition = 1;
     if (this.transition > 0) {
       this.transition++;
-      if (this.transition > 78) this.loadRoom(this.roomIndex + 1);
+      if (this.transition > 78) { this.finishedAll = this.roomIndex === LEVELS.length - 1; this.loadRoom(this.roomIndex + 1); }
     }
     if (r.litNow && this.onLit) this.onLit();
   }
@@ -1057,7 +1077,11 @@ function bootInteractive() {
   });
 
   const syncHud = () => {
-    roomName.textContent = game.sim.level.name;
+    // Say so when the last room is done, rather than silently starting over.
+    roomName.textContent = game.finishedAll && game.roomIndex === 0
+      ? `Every room is lit. Back to ${game.sim.level.name}`
+      : game.sim.level.name;
+    if (game.roomIndex !== 0) game.finishedAll = false;
     lanternCount.textContent = `${game.sim.litCount()} / ${game.sim.lanterns.length} lit`;
     roomPick.value = String(game.roomIndex);
   };
@@ -1084,6 +1108,22 @@ function bootInteractive() {
   window.addEventListener("keyup", (e) => setKey(e.code, false, e));
   window.addEventListener("blur", () => { game.input.left = game.input.right = game.input.jump = false; });
   canvas.addEventListener("pointerdown", () => canvas.focus());
+
+  /* ---- touch pad: hold a button to hold the key ---- */
+  document.querySelectorAll("#pad [data-act]").forEach((b) => {
+    const act = b.dataset.act;
+    let t0 = 0;
+    const down = (e) => { e.preventDefault(); document.body.classList.add("touch"); t0 = performance.now(); game.input[act] = true; b.classList.add("held"); try { b.setPointerCapture(e.pointerId); } catch (_) {} };
+    // A quick tap can start and end between two physics steps; hold it for at least ~5 steps.
+    const release = () => { game.input[act] = false; b.classList.remove("held"); };
+    const up = () => { const left = 80 - (performance.now() - t0); if (left > 0) setTimeout(release, left); else release(); };
+    b.addEventListener("pointerdown", down);
+    b.addEventListener("pointerup", up);
+    b.addEventListener("pointercancel", up);
+    b.addEventListener("lostpointercapture", up);
+    b.addEventListener("contextmenu", (e) => e.preventDefault());
+  });
+  window.addEventListener("touchstart", () => document.body.classList.add("touch"), { once: true, passive: true });
 
   /* ---- panel ---- */
   function togglePanel() {

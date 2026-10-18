@@ -94,6 +94,8 @@ li i{position:absolute;left:0;top:1px;width:20px;height:20px;border-radius:7px;f
 .stats b{display:block;font-size:24px;color:var(--marigold)}
 .stats span{font-size:12px;color:#b8b0e8}
 .nb{display:inline-block;margin-top:6px;padding:4px 12px;border-radius:99px;background:var(--pool);color:var(--ink);font-weight:800;font-size:13px}
+/* Phones on their side: the card is taller than the screen, so it scrolls and tightens up instead of losing its top */
+@media (max-height:480px){.card{align-items:flex-start;overflow-y:auto}.panel{margin:auto 0;padding:12px 18px 10px}h1{font-size:30px}.sub{margin-bottom:8px}ul{font-size:13px}li{margin-bottom:4px}.go{margin-top:6px;padding:10px 26px}.small{margin-top:6px}}
 html.preview .btns,html.preview .card{display:none!important}
 </style>
 </head>

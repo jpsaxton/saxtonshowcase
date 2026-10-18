@@ -95,7 +95,7 @@ SOFTWARE.
     --line: #2a323d;
     --ink: #e6e9ee;
     --ink-dim: #93a0b0;
-    --ink-faint: #63707f;
+    --ink-faint: #808c9a;  /* was #63707f, 3.1:1 on panels; now 4.6:1 or better */
     --amber: #f0b429;
     --amber-dim: #8a6a1c;
     --copper: #d98b52;
@@ -145,7 +145,7 @@ SOFTWARE.
   }
   @media (max-width: 620px) { .readout { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .readout div { background: var(--panel-2); padding: 7px 9px; }
-  .readout .k { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+  .readout .k { font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
   .readout .v { font-family: var(--mono); font-size: 14px; color: var(--ink); margin-top: 1px; }
   .readout .v.warn { color: var(--rose); }
   .readout .v.good { color: var(--teal); }
@@ -897,7 +897,11 @@ function updateReadout(res, f0, midi, k) {
 function fitCanvas(c) {
   var dpr = window.devicePixelRatio || 1;
   var w = c.clientWidth || 600;
-  var h = parseInt(c.getAttribute("height"), 10);
+  // The CSS height is the original height attribute, kept once: writing c.height below
+  // rewrites that attribute, so reading it back every frame doubled it on dpr 2 screens.
+  if (!c.dataset.cssh) c.dataset.cssh = c.getAttribute("height");
+  var h = parseInt(c.dataset.cssh, 10);
+  c.style.height = h + "px";
   if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) {
     c.width = Math.round(w * dpr);
     c.height = Math.round(h * dpr);

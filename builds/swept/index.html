@@ -99,7 +99,7 @@ SOFTWARE.
 <style>
   :root{
     --bg:#0d1117; --panel:#151b23; --panel2:#1b232d; --line:#2a3441;
-    --ink:#e8edf3; --dim:#93a1b0; --faint:#65727f;
+    --ink:#e8edf3; --dim:#93a1b0; --faint:#808c9a; /* was #65727f, 3.2:1; now AA on every panel */
     --safe:#3fb950; --safe-bg:#0f2a17; --safe-line:#1f5c2e;
     --warn:#d29922; --warn-bg:#2b2210; --warn-line:#6b5312;
     --bad:#f85149; --bad-bg:#2d1416; --bad-line:#7a2b2b;
@@ -216,7 +216,7 @@ SOFTWARE.
   details.matrix summary{cursor:pointer; padding:13px 18px; font-size:13.5px; color:var(--dim); user-select:none}
   details.matrix summary:hover{color:var(--ink)}
   details.matrix[open] summary{border-bottom:1px solid var(--line); color:var(--ink)}
-  .matrix .inner{padding:16px 18px}
+  .matrix .inner{padding:16px 18px; overflow-x:auto}
   table.m{width:100%; border-collapse:collapse; font-size:13px; margin-top:6px}
   table.m th,table.m td{padding:7px 10px; border:1px solid var(--line); text-align:left}
   table.m th{background:var(--panel2); color:var(--faint); font-size:11px; letter-spacing:.07em; text-transform:uppercase}

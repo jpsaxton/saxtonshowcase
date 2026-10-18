@@ -73,7 +73,7 @@ SOFTWARE.
 <title>Slingshot</title>
 <style>
   :root{
-    --ink:#e8ecf6; --dim:#8e9ab5; --faint:#5b6580;
+    --ink:#e8ecf6; --dim:#8e9ab5; --faint:#818ca8; /* was #5b6580, under 3.5:1; now AA */
     --panel:rgba(14,18,32,.82); --edge:rgba(126,148,200,.22);
     --go:#7ef0c0; --warn:#ff9d76; --beam:#9fd6ff;
   }
@@ -116,6 +116,13 @@ SOFTWARE.
     color:var(--faint); font-size:12.5px; line-height:1.45; z-index:5; pointer-events:none;
   }
   #hint b{color:var(--dim); font-weight:600}
+  /* Phone width: the hint sits above the level buttons instead of on top of them. */
+  @media (max-width:600px){
+    #levels{max-width:calc(100vw - 32px)}
+    #levels{gap:5px}
+    #levels button{width:34px; height:38px}
+    #hint{left:16px; right:16px; max-width:none; text-align:left; bottom:108px}
+  }
 
   #banner{
     position:fixed; left:50%; top:46%; transform:translate(-50%,-50%);
@@ -547,13 +554,14 @@ function launch() {
 
 function retry() { G.phase = "aim"; G.sim = null; G.trail = []; G.lastOutcome = null; refreshArc(); hideBanner(); paintChrome(); }
 
+const TOUCH = (() => { try { return matchMedia("(pointer: coarse)").matches; } catch (e) { return false; } })();
 function finish(outcome) {
   G.phase = "done"; G.lastOutcome = outcome;
   if (outcome === "win") {
     G.solved.add(G.level.id);
-    showBanner("win", "Docked", `${G.level.name} in ${G.attempts} ${G.attempts === 1 ? "shot" : "shots"} · N for next`);
+    showBanner("win", "Docked", `${G.level.name} in ${G.attempts} ${G.attempts === 1 ? "shot" : "shots"} · ${TOUCH ? "tap the next number" : "N for next"}`);
   } else {
-    showBanner("fail", outcome === "crash" ? "Impact" : "Lost to space", "R to try again");
+    showBanner("fail", outcome === "crash" ? "Impact" : "Lost to space", TOUCH ? "Tap to try again" : "R to try again");
   }
   paintChrome();
 }
@@ -580,7 +588,7 @@ function buildLevelButtons() {
 function paintChrome() {
   elName.innerHTML = `${G.level.name} <small>${G.li + 1} of ${LEVELS.length}</small>`;
   elStats.textContent = `${G.attempts} ${G.attempts === 1 ? "shot" : "shots"} · ${G.solved.size}/${LEVELS.length} docked`;
-  elHint.innerHTML = `<b>${G.phase === "aim" ? "Drag to aim, release to launch" : G.phase === "flying" ? "Coasting" : "R to retry · N for next"}</b><br>${G.level.hint}`;
+  elHint.innerHTML = `<b>${G.phase === "aim" ? "Drag to aim, release to launch" : G.phase === "flying" ? "Coasting" : TOUCH ? "Tap to retry, or pick a level" : "R to retry · N for next"}</b><br>${G.level.hint}`;
   [...elLevels.children].forEach((b, i) => {
     b.setAttribute("aria-current", i === G.li ? "true" : "false");
     b.classList.toggle("done", G.solved.has(LEVELS[i].id));

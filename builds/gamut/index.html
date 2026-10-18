@@ -92,9 +92,10 @@ SOFTWARE.
     --ink: #1a1a1f;
     --ink-dim: #5c5c66;
     --accent: #3b5bdb;
-    --ok: #2b8a3e;
-    --warn: #b45309;
-    --bad: #c92a2a;
+    --ok: #237032;
+    --warn: #92400e;
+    --bad: #b02020;
+    --on-accent: #fff;
     --radius: 10px;
     --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
     --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -111,6 +112,7 @@ SOFTWARE.
       --ok: #63c77a;
       --warn: #e0a458;
       --bad: #f08585;
+      --on-accent: #131316;
     }
   }
   :root[data-theme="dark"] {
@@ -124,6 +126,7 @@ SOFTWARE.
     --ok: #63c77a;
     --warn: #e0a458;
     --bad: #f08585;
+    --on-accent: #131316;
   }
 
   * { box-sizing: border-box; }
@@ -200,7 +203,7 @@ SOFTWARE.
     background: var(--surface-2); color: var(--ink);
     border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px;
   }
-  .toggles button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .toggles button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
   /* the gamut slice */
   .sliceWrap { position: relative; }
@@ -241,7 +244,7 @@ SOFTWARE.
   tbody tr:last-child td { border-bottom: none; }
   .pill { display: inline-block; padding: 1px 6px; border-radius: 999px; font-size: 10.5px; font-weight: 600; }
   .pill.aaa { background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); }
-  .pill.aa  { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
+  .pill.aa  { background: color-mix(in srgb, var(--accent) 18%, transparent); color: color-mix(in srgb, var(--accent) 80%, var(--ink)); }
   .pill.lg  { background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn); }
   .pill.no  { background: color-mix(in srgb, var(--bad) 16%, transparent); color: var(--bad); }
   .dot { display: inline-block; width: 11px; height: 11px; border-radius: 3px; border: 1px solid var(--line); vertical-align: -1px; margin-right: 6px; }
@@ -255,7 +258,7 @@ SOFTWARE.
   .exportBar { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
   .exportBar button, #proveBtn {
     font: inherit; font-size: 13px; cursor: pointer;
-    background: var(--accent); color: #fff; border: 1px solid transparent;
+    background: var(--accent); color: var(--on-accent); border: 1px solid transparent;
     border-radius: 7px; padding: 6px 13px;
   }
   .exportBar button.ghost { background: var(--surface-2); color: var(--ink); border-color: var(--line); }

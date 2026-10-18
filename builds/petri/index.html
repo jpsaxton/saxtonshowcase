@@ -183,6 +183,8 @@ SOFTWARE.
     transition: opacity 700ms; pointer-events: none;
   }
   #hint.gone { opacity: 0; }
+  #hint .hint-touch { display: none; }
+  @media (pointer: coarse) { #hint .hint-mouse { display: none; } #hint .hint-touch { display: inline; } }
   #fail {
     position: fixed; inset: 0; display: none; place-items: center;
     padding: 32px; text-align: center; color: var(--dim); z-index: 9;
@@ -204,7 +206,7 @@ SOFTWARE.
 <body>
 <div id="stage"><canvas id="gl"></canvas></div>
 
-<div id="hint">Drag to seed. Shift drag to wipe.</div>
+<div id="hint">Drag to seed. <span class="hint-mouse">Shift drag to wipe.</span><span class="hint-touch">Clear wipes the dish.</span></div>
 
 <div id="bar">
   <span id="title">Petri <small>a reaction diffusion dish</small></span>

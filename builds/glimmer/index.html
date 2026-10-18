@@ -1212,7 +1212,12 @@ function drawTitle() {
   var lh = fs * 1.35, bodyH = 0;
   laid.forEach(function (r) { bodyH += Math.max(fs * 2, r.lines.length * lh) + fs * 0.55; });
   var tsize = clamp(w / 7.5, 40, 62);
-  var h = Math.min(H - 20, 22 + tsize + 26 + 40 + 16 + bodyH + 24 + 50 + 36);
+  var h = 22 + tsize + 26 + 40 + 16 + bodyH + 24 + 50 + 36;
+  /* A landscape phone is shorter than the card: shrink the whole card to fit rather than
+     clip it, so the controls line and the play prompt stay on screen. */
+  var fit = Math.min(1, (H - 20) / h);
+  cx.save();
+  if (fit < 1) { cx.translate(W / 2, H / 2); cx.scale(fit, fit); cx.translate(-W / 2, -H / 2); }
   var o = card(w, h), y = o.y + 22 + tsize / 2;
   rainbowText("Glimmer", W / 2, y, tsize); y += tsize / 2 + 18;
   text("Match gems. Chase the glow.", W / 2, y, fs, DIM, "center", 700); y += 30;
@@ -1231,6 +1236,7 @@ function drawTitle() {
   text("Drag, or tap two gems. Arrows + Enter. P pause, M mute.", W / 2, y, cl, DIM, "center", 600); y += 36;
   pill(("ontouchstart" in window) ? "Tap to play" : "Press Enter or click to play", W / 2, y, fs * 1.05); y += 36;
   text("Best " + fmt(best), W / 2, y, fs * 0.9, DIM, "center", 700);
+  cx.restore();
 }
 function drawOver() {
   var won = screen === "won", w = Math.min(W - 24, 400), h = 250, o = card(w, h), y = o.y + 44;

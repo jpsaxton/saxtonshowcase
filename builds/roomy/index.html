@@ -1147,7 +1147,7 @@ Demo.prototype.render = function () {
   var bg = ctx.createLinearGradient(0, 0, cw, ch); bg.addColorStop(0, '#F7F4FF'); bg.addColorStop(1, '#EDE6FF');
   ctx.fillStyle = bg; ctx.fillRect(0, 0, cw, ch);
   var room = this.lv.room, panelW = Math.max(110, cw * 0.34), aw = cw - panelW, pad = ch * 0.06;
-  var cs = Math.min((aw - pad * 2) / (room.w + 0.7), (ch - pad * 2) / (room.h + 0.7));
+  var cs = Math.max(1, Math.min((aw - pad * 2) / (room.w + 0.7), (ch - pad * 2) / (room.h + 0.7)));
   var v = this.view = { cs: cs, ox: pad + (aw - pad * 2 - room.w * cs) / 2, oy: (ch - room.h * cs) / 2 };
   var fading = this.phase === 'done' && this.pt > 2.8 ? (this.pt - 2.8) / 0.4 : 0;
   drawRoom(ctx, v, this.lv, this.placed, { now: performance.now(), problems: this.sc.problems });
@@ -1215,6 +1215,7 @@ var S = {
 var best = store.get('best', []); if (!Array.isArray(best)) best = [];
 var layouts = store.get('layouts', {}); if (!layouts || typeof layouts !== 'object') layouts = {};
 var saved = store.get('rooms', []); if (!Array.isArray(saved)) saved = [];
+saved = saved.filter(function (r) { return r && r.room && r.room.w && r.room.h && Array.isArray(r.pieces); });
 var FREE_ROOMS = {
   S: { w: 7, h: 6, door: { side: 'S', i: 1 }, windows: [{ side: 'N', i: 2, len: 3 }] },
   M: { w: 9, h: 7, door: { side: 'S', i: 4 }, windows: [{ side: 'N', i: 1, len: 2 }, { side: 'N', i: 6, len: 2 }] },
@@ -1759,7 +1760,7 @@ function render(dt, now) {
   if (!cw || !ch) return;
   if (cv.width !== Math.round(cw * dpr) || cv.height !== Math.round(ch * dpr)) { cv.width = Math.round(cw * dpr); cv.height = Math.round(ch * dpr); }
   var room = S.level.room, pad = cw < 500 ? 8 : 18;
-  var cs = Math.floor(Math.min((cw - pad * 2) / (room.w + 0.7), (ch - pad * 2) / (room.h + 0.7)));
+  var cs = Math.max(1, Math.floor(Math.min((cw - pad * 2) / (room.w + 0.7), (ch - pad * 2) / (room.h + 0.7))));
   S.view = { cs: cs, ox: Math.round((cw - room.w * cs) / 2), oy: Math.round((ch - room.h * cs) / 2) };
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, cw, ch);
   if (S.shake > 0) { ctx.translate((Math.random() - 0.5) * 8 * S.shake, (Math.random() - 0.5) * 8 * S.shake); S.shake = Math.max(0, S.shake - dt * 4); }

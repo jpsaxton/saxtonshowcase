@@ -203,6 +203,7 @@ SOFTWARE.
   <label class="chk" for="bloom"><input id="bloom" type="checkbox" checked> Flowers</label>
   <label class="chk" for="pollen"><input id="pollen" type="checkbox" checked> Pollen</label>
   <button id="reseed" type="button">New meadow</button>
+  <button id="gustBtn" type="button">Gust</button>
   <div class="spacer"></div>
   <span id="hint">every breath of this is one scalar field</span>
 </div>
@@ -1140,13 +1141,19 @@ function plant(x, y) {
   });
   World.stems.push(s);
   World.planted.push(s);
+  /* Keep a meadow that a child taps for ten minutes as light as a fresh one:
+   * past 80 planted, the oldest planted flower makes way. */
+  if (World.planted.length > 80) {
+    const old = World.planted.shift(), at = World.stems.indexOf(old);
+    if (at >= 0) World.stems.splice(at, 1);
+  }
   // bloom it open over the next second or so
   const grow = setInterval(() => {
     if (!s.flower || s.flower.bloom >= 1) { clearInterval(grow); return; }
     s.flower.bloom = Math.min(1, s.flower.bloom + 0.045);
   }, 26);
-  // a little puff of pollen where it lands
-  for (let i = 0; i < 8; i++) {
+  // a little puff of pollen where it lands (only while the air is not already full)
+  for (let i = 0; i < 8 && World.motes.length < 700; i++) {
     World.motes.push({
       x: x + (rng() - 0.5) * 22, y: y + (rng() - 0.5) * 22,
       r: 0.6 + rng() * 1.4, a: 0.3 + rng() * 0.4,
@@ -1230,6 +1237,20 @@ function boot() {
       }
     });
   }
+  document.getElementById("gustBtn").addEventListener("click", () => { gust(); fadeCaption(); });
+  // Touch screens: plain words for the caption, and keep it clear of the control bar,
+  // which wraps to several rows on a phone and used to cover it.
+  try {
+    if (matchMedia("(pointer: coarse)").matches) {
+      document.getElementById("caption").innerHTML = "<b>Sway.</b> Drag through the grass. Tap it to plant a flower. Gust makes wind.";
+    }
+  } catch (e) {}
+  const placeCaption = () => {
+    const bar = document.getElementById("bar"), cap = document.getElementById("caption");
+    if (bar && cap) cap.style.bottom = (bar.offsetHeight + 30) + "px";
+  };
+  placeCaption();
+  window.addEventListener("resize", placeCaption);
   document.getElementById("reseed").addEventListener("click", () => {
     World.seed = (Math.random() * 1e9) | 0;
     World.planted.length = 0;

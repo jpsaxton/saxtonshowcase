@@ -92,6 +92,8 @@ body{
   padding:10px calc(10px + env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) calc(10px + env(safe-area-inset-left,0px));
 }
 .row{display:flex;gap:9px;align-items:center;width:max-content;margin:0 auto;padding:0 4px 4px 0}
+/* phones: fade the right edge so kids can see the toolbar keeps going */
+@media (max-width:700px){.tools{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent)}.tools.at-end{-webkit-mask-image:none;mask-image:none}}
 .sep{width:0;height:44px;border-left:3px dotted var(--lilac-deep);margin:0 3px;flex:0 0 auto}
 .btn{
   appearance:none;-webkit-appearance:none;flex:0 0 auto;
@@ -1611,6 +1613,9 @@ window.boltPark = {
   firstBotHead: () => { const b = things.find(t => t.kind === 'bot'); if (!b) return null; const c = frameOf(b.data.head); return { x: c.x, y: c.y }; }
 };
 })();
+</script>
+<script>
+(function(){var t=document.querySelector('.tools');if(!t)return;function f(){t.classList.toggle('at-end',t.scrollLeft+t.clientWidth>=t.scrollWidth-4)}t.addEventListener('scroll',f,{passive:true});addEventListener('resize',f);f();})();
 </script>
 </body>
 </html>

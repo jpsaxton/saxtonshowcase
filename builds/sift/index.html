@@ -176,7 +176,7 @@ SOFTWARE.
   table.diff td { vertical-align: top; padding: 0; }
   td.num {
     width: 52px; min-width: 52px; text-align: right; padding: 0 9px 0 6px;
-    color: #5a6675; background: var(--gutter); user-select: none;
+    color: #76818f; background: var(--gutter); user-select: none;
     border-right: 1px solid var(--line);
   }
   td.txt { padding: 0 10px; white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -321,6 +321,10 @@ function myersGreedy(a, b) {
   let visited = 0;
 
   for (let d = 0; d <= MAX; d++) {
+    /* Memory guard: the trace grows as D x (N + M). Two big, wholly different
+     * pastes would need gigabytes and crash the tab, so past about 240 MB this
+     * engine gives up and run() falls back to the linear one, and says so. */
+    if (trace.length * V.length > 6e7) return null;
     trace.push(V.slice());
     for (let k = -d; k <= d; k += 2) {
       let x;
@@ -741,7 +745,9 @@ function run() {
   const { ia, ib } = internPair(A, B, opts);
 
   const t0 = performance.now();
-  const res = state.engine === "greedy" ? myersGreedy(ia, ib) : myersLinear(ia, ib);
+  let res = state.engine === "greedy" ? myersGreedy(ia, ib) : myersLinear(ia, ib);
+  let fellBack = false;
+  if (!res) { res = myersLinear(ia, ib); fellBack = true; }
   const ms = performance.now() - t0;
 
   let adds = 0, dels = 0, eqs = 0;
@@ -750,7 +756,7 @@ function run() {
   }
 
   const last = { A, B, ops: res.ops, D: res.D, visited: res.visited,
-                 snapshots: res.snapshots, adds, dels, eqs, ms };
+                 snapshots: res.snapshots, adds, dels, eqs, ms, fellBack };
   window.__sift.last = last;
 
   renderStats(last);
@@ -768,7 +774,8 @@ function renderStats(d) {
     `<span class="chip">points <b>${d.visited}</b> of ${bound}</span>`,
     `<span class="chip">${d.ms < 1 ? "under 1" : d.ms.toFixed(1)} ms</span>`
   ];
-  if (state.engine === "greedy") chips.push(`<span class="chip">frontiers kept <b>${d.snapshots}</b></span>`);
+  if (d.fellBack) chips.push(`<span class="chip">too big for greedy, ran <b>linear space</b> instead</span>`);
+  if (state.engine === "greedy" && !d.fellBack) chips.push(`<span class="chip">frontiers kept <b>${d.snapshots}</b></span>`);
   else chips.push(`<span class="chip">frontiers live <b>${d.snapshots}</b></span>`);
   $("stats").innerHTML = chips.join("");
 }

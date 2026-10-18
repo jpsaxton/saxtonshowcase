@@ -138,6 +138,16 @@ SOFTWARE.
   .newbest { display: inline-block; margin: 4px 0 0; padding: 2px 10px; border-radius: 10px; background: var(--grass); color: var(--ink); font-weight: 800; font-size: 13px; }
   .hint { color: var(--dim); font-size: 13px; margin: 10px 0 0; }
   .hidden { display: none !important; }
+  @media (max-height: 420px) {
+    .card { padding: 8px; }
+    .panel { padding: 12px 16px 12px; }
+    .logo { font-size: 30px; }
+    .sub { margin-bottom: 8px; }
+    .how { margin-bottom: 8px; font-size: 13px; }
+    .how li { padding: 1px 0; }
+    .caps { margin-bottom: 10px; }
+    .best { margin-top: 6px; }
+  }
 
   /* Preview mode: the showcase card shows this page in a short 2:1 frame. No chrome at all. */
   html.preview #btns, html.preview .card, body.preview #btns, body.preview .card { display: none !important; }

@@ -331,7 +331,7 @@ SOFTWARE.
       <div style="margin-top:16px">
         <p class="cap" style="font-size:11px;text-transform:uppercase;letter-spacing:0.09em;color:var(--dim);margin:0 0 7px;font-weight:700">
           Tokens needed for a held out paragraph, as the vocabulary grows</p>
-        <canvas id="curve" width="1000" height="300"></canvas>
+        <canvas id="curve" width="1000" height="300" role="img" aria-label="Chart: tokens needed for a held out paragraph as the vocabulary grows"></canvas>
         <p class="note">The held out paragraph is <em>not</em> in the corpus, so this is compression
           on text the tokenizer has never seen. It drops fast and then flattens. That elbow is the
           real argument about vocabulary size: past it you are buying embedding rows and getting
@@ -370,7 +370,7 @@ SOFTWARE.
       its final tokens. Each rung is one merge firing, and the label is that merge's rank.</p>
     <div class="panel">
       <div class="row">
-        <input id="traceWord" type="text" spellcheck="false" value=" tokenizer"
+        <input id="traceWord" type="text" spellcheck="false" value=" tokenizer" aria-label="Word to trace"
           style="flex:1 1 220px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-family:var(--mono);font-size:13px">
       </div>
       <div class="ladder" id="ladder" style="margin-top:12px"></div>

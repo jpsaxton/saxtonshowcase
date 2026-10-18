@@ -3,11 +3,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>About Saxton Showcase</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23F7F4FF'/%3E%3Cpath d='M10 14h14a6 6 0 1 1 12 0h18v16a6 6 0 1 0 0 12v12H36a6 6 0 1 0-12 0H10V42a6 6 0 1 1 0-12z' fill='%23FF4F6D' stroke='%231A1540' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preload" href="../fonts/Unbounded.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../fonts/AtkinsonHyperlegible-400.woff2" as="font" type="font/woff2" crossorigin>
 <meta name="description" content="Saxton Showcase is a free shelf of 31 single-file web builds (games, life sims, toys, tools and labs) made at home by Amelia Saxton's family and their AI helper, Amy. Free under the MIT License, nothing for sale.">
 <link rel="canonical" href="https://saxtonshowcase.com/about/">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[
-{"@type":"Organization","@id":"https://saxtonshowcase.com/#org","name":"Saxton Showcase","url":"https://saxtonshowcase.com/","description":"A free shelf of single-file web builds made at home by a family and their AI helper. The proof shelf for AI But Make It Real.","foundingDate":"2026-09","founder":{"@type":"Person","name":"Amelia Saxton","url":"https://www.linkedin.com/in/ameliasaxton"},"areaServed":"Worldwide","location":{"@type":"Place","address":{"@type":"PostalAddress","addressRegion":"OH","addressCountry":"US"}},"parentOrganization":{"@type":"Organization","name":"AI But Make It Real","url":"https://www.linkedin.com/company/ai-but-make-it-real/"},"sameAs":["https://github.com/Rook-Saxton/saxtonshowcase","https://www.linkedin.com/company/ai-but-make-it-real/"]},
+{"@type":"Organization","@id":"https://saxtonshowcase.com/#org","name":"Saxton Showcase","url":"https://saxtonshowcase.com/","description":"A free shelf of single-file web builds made at home by a family and their AI helper. The proof shelf for AI But Make It Real.","foundingDate":"2026-09","founder":{"@type":"Person","name":"Amelia Saxton","url":"https://www.linkedin.com/in/ameliasaxton"},"areaServed":"Worldwide","location":{"@type":"Place","address":{"@type":"PostalAddress","addressRegion":"OH","addressCountry":"US"}},"parentOrganization":{"@type":"Organization","name":"AI But Make It Real","url":"https://www.aibutmakeitreal.com/","sameAs":["https://www.linkedin.com/company/ai-but-make-it-real/"]},"sameAs":["https://github.com/jpsaxton/saxtonshowcase","https://www.aibutmakeitreal.com/","https://www.linkedin.com/company/ai-but-make-it-real/"]},
 {"@type":"AboutPage","url":"https://saxtonshowcase.com/about/","name":"About Saxton Showcase","about":{"@id":"https://saxtonshowcase.com/#org"}},
 {"@type":"FAQPage","mainEntity":[
 {"@type":"Question","name":"Is it really free?","acceptedAnswer":{"@type":"Answer","text":"Yes. Every build is free under the MIT License. There is no account, no email gate and nothing to buy."}},
@@ -42,13 +45,15 @@ a{color:inherit}
 :focus-visible{outline:2px solid var(--lav);outline-offset:3px;border-radius:8px}
 h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.1}
 .lbl{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.03em}
+.skip{position:absolute;left:12px;top:-60px;z-index:70;background:var(--ink);color:var(--night);padding:10px 14px;border-radius:10px;font-weight:700;text-decoration:none}
+.skip:focus{top:12px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .crooked .w{display:inline-block;white-space:nowrap}
 .crooked .ch{display:inline-block}
 nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;padding-block:20px}
 nav .l,nav .r{display:flex;gap:20px}
 nav .r{justify-content:flex-end}
-nav a{text-decoration:none}
+nav a{text-decoration:none;display:inline-block;padding-block:10px}
 nav a:hover{color:var(--lav)}
 nav a[aria-current]{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
 .word{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--display);font-weight:800;font-size:clamp(15px,5vw,20px);letter-spacing:.06em;white-space:nowrap}
@@ -95,9 +100,10 @@ table.facts tr:last-child th,table.facts tr:last-child td{border-bottom:0}
 .faq h3{font-size:18px;margin:0 0 6px}
 .faq p{margin:0;color:var(--muted);font-size:16px}
 footer{display:grid;grid-template-columns:1.4fr repeat(2,1fr);gap:24px;padding-block:48px 64px;border-top:1px solid var(--edge)}
-footer h4{font-family:var(--display);font-weight:700;font-size:13px;margin:0 0 10px}
-footer ul{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:15px}
+footer .fh{font-family:var(--display);font-weight:700;font-size:13px;margin:0 0 10px}
+footer ul{list-style:none;margin:0;padding:0;display:grid;gap:0;font-size:15px}
 footer a{text-decoration:none}
+footer li a{display:inline-block;padding-block:8px}
 footer a:hover{color:var(--lav)}
 footer .note{color:var(--muted);margin:12px 0 0;font-size:16px}
 @media (max-width:900px){
@@ -106,7 +112,9 @@ footer .note{color:var(--muted);margin:12px 0 0;font-size:16px}
 }
 @media (max-width:620px){
   nav{grid-template-columns:1fr;justify-items:center;gap:10px}
-  nav .l,nav .r{justify-content:center}
+  nav{display:flex;flex-wrap:wrap;justify-content:center;gap:0 18px;padding-bottom:4px}
+  nav .word{flex-basis:100%;justify-content:center;order:-1}
+  nav .l,nav .r{display:contents}
   .grid,ul.who,.faq,ol.steps{grid-template-columns:1fr}
   .card:nth-child(n){transform:none}
   table.facts th{width:38%}
@@ -117,13 +125,14 @@ footer .note{color:var(--muted);margin:12px 0 0;font-size:16px}
 </style>
 <body>
 <div class="wrap">
+  <a class="skip" href="#main">Skip to the content</a>
   <nav>
     <div class="l lbl"><a href="/">Pieces</a><a href="/about/" aria-current="page">About</a></div>
     <a class="word" href="/" aria-label="Saxton Showcase home"><span class="crooked">SAXTON SHOWCASE</span></a>
-    <div class="r lbl"><a href="/#top">Play something</a><a href="/#idea">Say hi</a></div>
+    <div class="r lbl"><a href="/#play">Play something</a><a href="/#idea">Say hi</a></div>
   </nav>
 
-  <main>
+  <main id="main">
   <header class="hero">
     <div>
       <p class="kick">ABOUT / SAXTON SHOWCASE</p>
@@ -138,7 +147,7 @@ footer .note{color:var(--muted);margin:12px 0 0;font-size:16px}
       <div class="card" style="--c:var(--tomato)"><h3>Free builds you can keep</h3><p>31 pieces right now, each one a single web page. Play it here or download it and it's yours. You end up with a working thing, not a demo video.</p></div>
       <div class="card" style="--c:var(--pool)"><h3>Notes on what each build taught us</h3><p>Every build comes with a second file that says what we learned making it, written so your own AI helper can read it too. You get the reasoning, not only the result.</p></div>
       <div class="card" style="--c:var(--marigold)"><h3>An idea box for the next piece</h3><p>Tell us what your family keeps doing by hand. The next build could start with yours. It's free to send, and it's an idea, not an order.</p></div>
-      <div class="card" style="--c:var(--grass)"><h3>Proof for a teaching brand</h3><p>This is the proof shelf for <a href="https://www.linkedin.com/company/ai-but-make-it-real/">AI But Make It Real</a>, Amelia Saxton's teaching brand. When she says AI can make a thing, the thing is here and you can open it.</p></div>
+      <div class="card" style="--c:var(--grass)"><h3>Proof for a teaching brand</h3><p>This is the proof shelf for <a href="https://www.aibutmakeitreal.com/">AI But Make It Real</a>, Amelia Saxton's teaching brand. When she says AI can make a thing, the thing is here and you can open it.</p></div>
     </div>
   </section>
 
@@ -171,7 +180,7 @@ footer .note{color:var(--muted);margin:12px 0 0;font-size:16px}
       <div>
         <p><b>Amelia Saxton</b> started Saxton Showcase in September 2026. She spent 13 years running the systems behind product data and e-commerce: Shopify, Salsify, Stibo STEP, Episerver, ERP and CMS platforms, and custom low-code and no-code apps. Most recently she ran an AI agent program at work.</p>
         <p>She got tired of hearing what AI "could" do. So she set her own AI helper loose on real builds at home, put everything that worked on one public shelf, and kept the notes on what didn't. The shelf is the receipt.</p>
-        <div class="links"><a class="btn" href="https://www.linkedin.com/in/ameliasaxton">Amelia on LinkedIn</a><a class="btn ghost" href="https://www.linkedin.com/company/ai-but-make-it-real/">AI But Make It Real on LinkedIn</a><a class="btn ghost" href="https://github.com/Rook-Saxton/saxtonshowcase">The code on GitHub</a></div>
+        <div class="links"><a class="btn" href="https://www.linkedin.com/in/ameliasaxton">Amelia on LinkedIn</a><a class="btn ghost" href="https://www.aibutmakeitreal.com/">AI But Make It Real</a><a class="btn ghost" href="https://www.linkedin.com/company/ai-but-make-it-real/">AI But Make It Real on LinkedIn</a><a class="btn ghost" href="https://github.com/jpsaxton/saxtonshowcase">The code on GitHub</a></div>
       </div>
       <div class="side">
         <h3>Amy, our AI helper</h3>
@@ -193,7 +202,7 @@ footer .note{color:var(--muted);margin:12px 0 0;font-size:16px}
   <section aria-labelledby="factsH">
     <h2 id="factsH">Key facts</h2>
     <table class="facts">
-      <caption>Saxton Showcase at a glance, as of September 2026</caption>
+      <caption>Saxton Showcase at a glance, as of October 2026</caption>
       <tbody>
         <tr><th scope="row">Name</th><td>Saxton Showcase</td></tr>
         <tr><th scope="row">Type</th><td>Free library of single-file web builds; the proof shelf for AI But Make It Real</td></tr>
@@ -201,13 +210,14 @@ footer .note{color:var(--muted);margin:12px 0 0;font-size:16px}
         <tr><th scope="row">Founder</th><td>Amelia Saxton</td></tr>
         <tr><th scope="row">Built by</th><td>Amy, an AI helper, with people choosing and checking the work</td></tr>
         <tr><th scope="row">Based in</th><td>Northwest Ohio, USA</td></tr>
+        <tr><th scope="row">Teaching company</th><td><a href="https://www.aibutmakeitreal.com/">AI But Make It Real</a> (aibutmakeitreal.com)</td></tr>
         <tr><th scope="row">Website</th><td><a href="https://saxtonshowcase.com/">saxtonshowcase.com</a></td></tr>
         <tr><th scope="row">Core offering</th><td>31 free builds: 7 games, 5 life sims, 9 toys, 6 tools and 4 labs</td></tr>
         <tr><th scope="row">Pricing</th><td>Free. Nothing on the site is for sale.</td></tr>
         <tr><th scope="row">Contract terms</th><td>None. No account, no sign-up, no email required.</td></tr>
         <tr><th scope="row">License</th><td>MIT License for the builds; SIL Open Font License for the fonts</td></tr>
         <tr><th scope="row">Works offline</th><td>Yes. Each build is one HTML file.</td></tr>
-        <tr><th scope="row">Source code</th><td><a href="https://github.com/Rook-Saxton/saxtonshowcase">github.com/Rook-Saxton/saxtonshowcase</a></td></tr>
+        <tr><th scope="row">Source code</th><td><a href="https://github.com/jpsaxton/saxtonshowcase">github.com/jpsaxton/saxtonshowcase</a></td></tr>
         <tr><th scope="row">Social</th><td><a href="https://www.linkedin.com/in/ameliasaxton">Amelia Saxton on LinkedIn</a> · <a href="https://www.linkedin.com/company/ai-but-make-it-real/">AI But Make It Real on LinkedIn</a></td></tr>
       </tbody>
     </table>
@@ -230,8 +240,8 @@ footer .note{color:var(--muted);margin:12px 0 0;font-size:16px}
   <footer>
     <div><div class="word" style="font-size:17px"><span class="crooked">SAXTON SHOWCASE</span></div>
       <p class="note">Built by us, with Amy.<br>The builds are free to use under the <a href="/LICENSE" style="color:var(--text);font-weight:700">MIT License</a>; the fonts under their own open licence.</p></div>
-    <div><h4>Pieces</h4><ul><li><a href="/">Every piece</a></li><li><a href="/6-saxton-showcase-all.zip" download>Download all of them</a></li></ul></div>
-    <div><h4>Us</h4><ul><li><a href="/about/">About</a></li><li><a href="/#idea">Suggest a piece</a></li></ul></div>
+    <div><h2 class="fh">Pieces</h2><ul><li><a href="/">Every piece</a></li><li><a href="/6-saxton-showcase-all.zip" download>Download all of them</a></li></ul></div>
+    <div><h2 class="fh">Us</h2><ul><li><a href="/about/">About</a></li><li><a href="/#idea">Suggest a piece</a></li></ul></div>
   </footer>
 </div>
 <script>

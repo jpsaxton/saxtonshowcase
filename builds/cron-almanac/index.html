@@ -96,7 +96,7 @@ SOFTWARE.
 <style>
   :root{
     --bg:#0e1116; --panel:#161b22; --panel2:#1c232c; --line:#2a323d;
-    --ink:#e6edf3; --dim:#9aa7b4; --faint:#6b7885;
+    --ink:#e6edf3; --dim:#9aa7b4; --faint:#8592a0;
     --accent:#7cc4ff; --warn:#ffc46b; --bad:#ff8f8f; --good:#8fe0a8; --mag:#d3a4ff;
     --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
     --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -104,7 +104,7 @@ SOFTWARE.
   @media (prefers-color-scheme: light){
     :root{
       --bg:#f6f8fa; --panel:#ffffff; --panel2:#f0f3f6; --line:#d6dde5;
-      --ink:#161b22; --dim:#4d5865; --faint:#7a8794;
+      --ink:#161b22; --dim:#4d5865; --faint:#5f6b77;
       --accent:#0b62c4; --warn:#8a5b00; --bad:#b3261e; --good:#1a7f4b; --mag:#7b3fbf;
     }
   }
@@ -205,7 +205,7 @@ SOFTWARE.
      values above are still the ones a person sees when they open the build itself. */
   html.preview{
     --bg:#0e1116; --panel:#161b22; --panel2:#1c232c; --line:#2a323d;
-    --ink:#e6edf3; --dim:#9aa7b4; --faint:#6b7885;
+    --ink:#e6edf3; --dim:#9aa7b4; --faint:#8592a0;
     --accent:#7cc4ff; --warn:#ffc46b; --bad:#ff8f8f; --good:#8fe0a8; --mag:#d3a4ff;
   }
 
@@ -268,7 +268,7 @@ SOFTWARE.
   <section class="card">
     <h2>The year, one cell per day</h2>
     <div id="ribbonWrap">
-      <canvas id="ribbon" width="1240" height="620"></canvas>
+      <canvas id="ribbon" width="1240" height="620" role="img" aria-label="The year as a grid, one cell per day: brighter cells fire more often, red marks a fire lost to spring forward, amber a fire doubled at fall back"></canvas>
       <div class="tip" id="tip"></div>
     </div>
     <div class="legend">
@@ -886,7 +886,7 @@ function drawRibbon(){
   ctx.textBaseline = "middle";
 
   // column headings, every fifth day
-  ctx.fillStyle = css("--faint") || "#6b7885";
+  ctx.fillStyle = css("--faint") || "#8592a0";
   ctx.textAlign = "center";
   for (let d = 1; d <= 31; d++){
     if (d !== 1 && d % 5 !== 0) continue;

@@ -80,7 +80,7 @@ SOFTWARE.
 <title>Aeolian</title>
 <style>
   :root{
-    --ink:#e9ecf5; --dim:#8d97b3; --faint:#5a6580;
+    --ink:#e9ecf5; --dim:#8d97b3; --faint:#7d88a4;
     --panel:rgba(13,16,28,.86); --edge:rgba(130,150,200,.2);
   }
   *{box-sizing:border-box}
@@ -688,6 +688,10 @@ function boot() {
   bindSlider("vol", "vol");
 
   const sw = document.getElementById("showwind");
+  /* Reduced motion: start with the streaking wind particles hidden. The strings still move,
+     because they are the instrument; the toggle brings the particles back on request. */
+  try { if (matchMedia("(prefers-reduced-motion: reduce)").matches) state.showWind = false; } catch (e) {}
+  sw.setAttribute("aria-pressed", String(state.showWind));
   sw.addEventListener("click", () => {
     state.showWind = !state.showWind;
     sw.setAttribute("aria-pressed", String(state.showWind));
