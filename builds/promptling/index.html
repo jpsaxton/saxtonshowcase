@@ -98,7 +98,7 @@ svg{display:block}
 .btn[disabled]:active{transform:none;border-bottom-width:5px;margin-top:0}
 .btn.alt{background:#fff;border:2px solid var(--line);border-bottom-width:5px;color:var(--grape-d)}
 .btn.pool{background:var(--pool);border-bottom-color:var(--pool-d)}
-.btn.warn{background:var(--tomato);border-bottom-color:var(--tomato-d);color:#fff}
+.btn.warn{background:var(--tomato-d);border-bottom-color:#A8203F;color:#fff}
 .ibtn{width:44px;height:44px;border-radius:12px;border:2px solid transparent;background:none;display:grid;place-items:center;color:var(--dim);padding:0}
 .ibtn:hover{background:#EEE9FA}
 
@@ -140,7 +140,7 @@ svg{display:block}
 .node.cur::after{content:"";position:absolute;inset:-11px -11px -19px;border-radius:50%;border:4px solid var(--c);opacity:.55;animation:pulse 1.8s ease-in-out infinite}
 .node.review.cur::after{border-radius:30px}
 @keyframes pulse{0%,100%{transform:scale(1);opacity:.55}50%{transform:scale(1.06);opacity:.2}}
-.tag{position:absolute;top:-36px;left:50%;transform:translateX(-50%);background:#fff;border:2px solid var(--line);color:var(--cd);font-weight:900;font-size:13px;letter-spacing:.08em;padding:4px 10px;border-radius:10px;white-space:nowrap;animation:bob 1.6s ease-in-out infinite}
+.tag{position:absolute;top:-36px;left:50%;transform:translateX(-50%);background:#fff;border:2px solid var(--cd);color:var(--ink);font-weight:900;font-size:13px;letter-spacing:.08em;padding:4px 10px;border-radius:10px;white-space:nowrap;animation:bob 1.6s ease-in-out infinite}
 .tag::after{content:"";position:absolute;left:50%;bottom:-7px;width:10px;height:10px;background:#fff;border-right:2px solid var(--line);border-bottom:2px solid var(--line);transform:translateX(-50%) rotate(45deg)}
 @keyframes bob{0%,100%{margin-top:0}50%{margin-top:-4px}}
 .pipside{position:absolute;width:86px;height:86px;top:4px;pointer-events:none}
@@ -240,7 +240,7 @@ svg{display:block}
 .fbw .ans{font-weight:800;margin-bottom:2px}
 .fbw ol{margin:2px 0 4px;padding-left:22px}
 #cont{grid-column:3;grid-row:1/span 2;min-width:170px}
-.fb.bad #cont{background:var(--tomato);border-bottom-color:var(--tomato-d);color:#fff}
+.fb.bad #cont{background:var(--tomato-d);border-bottom-color:#A8203F;color:#fff}
 @media (max-width:600px){ .fbin{grid-template-columns:auto 1fr} #cont{grid-column:1/span 2;grid-row:auto;width:100%;margin-top:8px} .fbicon{grid-row:auto;width:36px;height:36px} .fbicon svg{width:22px;height:22px} .fbw{grid-column:1/span 2} }
 
 /* centred screens */
@@ -961,14 +961,14 @@ function renderEx() {
   const it = S.queue[0], ex = it.ex, k = kind(ex), n = optionCount(ex);
   S.resp = k === 'single' ? null : []; S.checked = false;
   let perm = range(n);
-  if (ex.t === 'mc' || ex.t === 'pick' || ex.t === 'fix' || ex.t === 'tiles') perm = shuffle(perm);
+  if (ex.t === 'mc' || ex.t === 'pick' || ex.t === 'fix' || ex.t === 'tiles' || ex.t === 'spot') perm = shuffle(perm);
   if (ex.t === 'order') { do { perm = shuffle(range(n)); } while (perm.every((v, i) => v === i)); }
   S.perm = perm;
   let h = `<div class="tlabel">${it.retry ? '<span class="again">Try again</span>' : ''}<span>${TYPE_LABEL[ex.t]}</span></div>`;
   if (ex.t === 'mc') h += `<div class="q">${esc(ex.q)}</div><div class="opts">${perm.map((i, p) => optBtn(i, p, esc(ex.o[i]))).join('')}</div>`;
   else if (ex.t === 'pick') h += `<div class="q">${esc(ex.q || 'Which prompt will get the better answer?')}</div><div class="opts pick">${perm.map((i, p) => `<button class="opt" data-i="${i}"><small><span class="k">${p + 1}</span>Prompt ${p ? 'B' : 'A'}</small><span class="tx">${esc(ex.o[i])}</span></button>`).join('')}</div>`;
   else if (ex.t === 'fix') h += `<div class="chat">${ex.chat.map(([w, t]) => `<div class="bub ${w}"><span class="who">${w === 'you' ? 'You' : 'Assistant'}</span>${esc(t)}</div>`).join('')}</div><div class="q">${esc(ex.q)}</div><div class="opts">${perm.map((i, p) => optBtn(i, p, esc(ex.o[i]))).join('')}</div>`;
-  else if (ex.t === 'spot') h += `<div class="q">${esc(ex.q || 'Tap the sentence that is made up or not supported.')}</div>` + (ex.src ? `<div class="src"><b>What you gave it</b>${esc(ex.src)}</div>` : '') + `<p class="ask">${esc(ex.ask)}</p><div class="reply"><span class="who">Assistant</span>${ex.s.map((s, i) => `<button class="sent" data-i="${i}"><span class="k">${i + 1}</span><span>${esc(s)}</span></button>`).join('')}</div>`;
+  else if (ex.t === 'spot') h += `<div class="q">${esc(ex.q || 'Tap the sentence that is made up or not supported.')}</div>` + (ex.src ? `<div class="src"><b>What you gave it</b>${esc(ex.src)}</div>` : '') + `<p class="ask">${esc(ex.ask)}</p><div class="reply"><span class="who">Assistant</span>${perm.map((i, p) => `<button class="sent" data-i="${i}"><span class="k">${p + 1}</span><span>${esc(ex.s[i])}</span></button>`).join('')}</div>`;
   else if (ex.t === 'safe') h += `<div class="q">Is this safe to do?</div><div class="scard" id="scard">${esc(ex.q)}</div><div class="sbtns">${optBtn(0, 0, 'Safe', 'sy')}${optBtn(1, 1, 'Not safe', 'sn')}</div><p class="hint" style="text-align:center">Tip: swipe the card right for safe, left for not safe.</p>`;
   else if (ex.t === 'need') h += `<div class="pcard"><b>The prompt</b>${esc(ex.p)}</div><div class="q">${esc(ex.q)}</div><div class="chips short">${perm.map((i, p) => optBtn(i, p, esc(ex.o[i]))).join('')}</div><p class="hint">Pick all that apply.</p>`;
   else if (ex.t === 'tiles') h += `<div class="q">${esc(ex.q)}</div><div class="chips">${perm.map((i, p) => optBtn(i, p, esc(ex.o[i]))).join('')}</div><p class="hint">Pick all that apply.</p>`;
