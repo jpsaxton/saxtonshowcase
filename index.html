@@ -87,6 +87,13 @@ body.ship .draft-banner{display:none}body.ship [data-draft]::after,body.ship [da
 .phones figcaption{font:400 11px var(--mono);color:var(--white);padding:8px 10px;text-transform:uppercase}
 .labels{list-style:none;padding:0;margin:4px 0 0;display:flex;flex-wrap:wrap;gap:8px}
 .labels li{font:400 11px var(--mono);background:var(--white);border:1.5px solid var(--ink);padding:5px 8px}
+.desks{display:grid;grid-template-columns:2fr 1fr 1fr;gap:16px;margin:16px 0 4px;align-items:start}
+.desks figure{margin:0;border:2px solid var(--ink);background:var(--ink);border-radius:18px;overflow:hidden}
+.desks figure.mac{border-radius:10px}
+.desks figcaption{font:400 11px var(--mono);color:var(--white);padding:8px 10px;text-transform:uppercase}
+.mac .bar{display:flex;align-items:center;gap:6px;background:#e9e6ef;padding:7px 10px;font:700 12px var(--read);color:var(--ink)}
+.mac .bar i{width:10px;height:10px;border-radius:50%;background:#ff5f57;display:inline-block}.mac .bar i:nth-child(2){background:#febc2e}.mac .bar i:nth-child(3){background:#28c840}
+.mac .bar span{margin-left:auto;margin-right:auto}
 .sys{list-style:none;padding:0;margin:16px 0 0;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 .sys li{font-size:18px;line-height:1.4;border-top:3px solid var(--ink);padding-top:10px}
 .names{list-style:none;padding:18px;margin:16px 0 4px;background:var(--purple);border:2px solid var(--ink);columns:2;column-gap:20px}
@@ -132,6 +139,7 @@ footer a{display:inline-block;padding:6px 2px;min-height:28px}
  .cards{grid-template-columns:1fr}.card,.card.wide{transform:none}
  .phones{gap:8px}.phones figure{border-radius:12px}.phones figcaption{font-size:9px;padding:6px}
  .sys{grid-template-columns:1fr}
+ .desks{grid-template-columns:1fr 1fr}.desks figure.mac{grid-column:1/-1}.desks figure{border-radius:12px}.desks figcaption{font-size:9px;padding:6px}
 }
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 </style>
@@ -179,6 +187,7 @@ footer a{display:inline-block;padding:6px 2px;min-height:28px}
     <span class="tag">iPhone apps</span>
     <h3>Three apps</h3>
     <p>I may not be able to go and rescue every cat right now, but what I can do is create an app in my living room while I am taking care of my kiddos and looking for my next opportunity.</p>
+    <p>And the Owners App, built before we even had TestFlight.</p>
     <div class="phones">
      <figure><img src="/img/app-catchup-start.jpg" width="420" height="474" alt="Catch Up on an iPhone: Never lose track of who called." loading="lazy"><figcaption>Catch Up</figcaption></figure>
      <figure><img src="/img/app-own-home.jpg" width="420" height="474" alt="The Owners App on an iPhone, with Print Station and Newspaper Hall." loading="lazy"><figcaption>Owners App</figcaption></figure>
@@ -191,14 +200,14 @@ footer a{display:inline-block;padding:6px 2px;min-height:28px}
     <span class="tag">Agent run desks</span>
     <h3>More than apps</h3>
     <p>We made more than just those apps.</p>
-    <div class="phones">
+    <div class="desks">
+     <figure class="mac"><div class="bar" aria-hidden="true"><i></i><i></i><i></i><span>Print Station</span></div><img src="/img/sys-print-station-mac.jpg" width="1000" height="546" alt="Print Station, the Mac app: the printer card with the loaded spool, and the print queue with previews, times, grams and colours." loading="lazy"><figcaption>Print Station on the Mac</figcaption></figure>
      <figure><img src="/img/sys-newspaper-hall.jpg" width="420" height="474" alt="Newspaper Hall on an iPhone: a fresh paper every hour, the shelf of papers by the hour." loading="lazy"><figcaption>Newspaper Hall</figcaption></figure>
-     <figure><img src="/img/sys-print-station.jpg" width="420" height="474" alt="Print Station on an iPhone: what is on the printer now and what is next in line." loading="lazy"><figcaption>Print Station</figcaption></figure>
      <figure><img src="/img/sys-talk-it-out.jpg" width="420" height="474" alt="Talk It Out: pick a topic and talk it out with my agent." loading="lazy"><figcaption>Talk It Out</figcaption></figure>
     </div>
     <ul class="sys">
-     <li>The Newspaper Hall is a full process end to end agent driven.</li>
      <li>The Print Station is our own print queue and design studio with a fully running gym.</li>
+     <li>The Newspaper Hall is a full process end to end agent driven.</li>
      <li>The talk to me zone where I can talk to my agent about all the things that are better left talked through. Like that friend you would bounce ideas off that's no longer here.</li>
     </ul>
    </article>
