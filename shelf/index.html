@@ -151,7 +151,7 @@ footer .note{color:var(--muted);margin:12px 0 0;font-size:16px}
 /* board toolbar, list view, empty state */
 .tools{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
 .tools .chips{margin:0}
-.chip span{font-family:var(--mono);font-weight:400;font-size:12px;margin-left:7px;opacity:.7}
+.chip span{font-family:var(--mono);font-weight:400;font-size:12px;margin-left:3px;opacity:.7}
 .tools .right{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .find input{font:inherit;font-size:15px;padding:9px 16px;border-radius:999px;border:1px solid #7E73B0;background:var(--panel);color:var(--text);width:190px}
 .seg{display:inline-flex;border:1px solid var(--edge);border-radius:999px;padding:3px;background:var(--panel)}
@@ -680,7 +680,7 @@ footer .note{color:var(--muted);margin:12px 0 0;font-size:16px}
     if(puzzle&&n){drawBoard();if(fly)flyIn(60);}
     if(!puzzle)drawList();
     var q=view.q.trim().toLowerCase();
-    document.querySelectorAll(".chip[data-f] span").forEach(function(sp){var f=sp.parentNode.dataset.f;sp.textContent=items.filter(function(it){return (f==="all"||it.k===f)&&(!q||(it.n+" "+it.d+" "+KIND[it.k][0]).toLowerCase().indexOf(q)>-1);}).length;sp.parentNode.setAttribute("aria-label",sp.parentNode.dataset.name+", "+sp.textContent);});
+    document.querySelectorAll(".chip[data-f] span").forEach(function(sp){var f=sp.parentNode.dataset.f;sp.textContent=items.filter(function(it){return (f==="all"||it.k===f)&&(!q||(it.n+" "+it.d+" "+KIND[it.k][0]).toLowerCase().indexOf(q)>-1);}).length;sp.parentNode.removeAttribute("aria-label");});
     var sb=list.filter(function(x){return x.slug;}).length,sw=n-sb;
     bstate.textContent=n?(sb+" build"+(sb===1?"":"s")+(sw?", "+sw+" in the workshop":"")+(narrowed?" showing":"")+(puzzle?(narrowNow?". Tap a piece to open it, or choose List to see the names.":". Tap one to open it."):".")):"No pieces match.";
   }
@@ -689,7 +689,7 @@ footer .note{color:var(--muted);margin:12px 0 0;font-size:16px}
   // Chip counts, and a chip with nothing behind it goes away.
   document.querySelectorAll(".chip[data-f]").forEach(function(b){
     var c=b.dataset.f==="all"?items.length:items.filter(function(it){return it.k===b.dataset.f;}).length;
-    b.dataset.name=b.textContent.trim();var s=document.createElement("span");s.textContent=c;b.appendChild(s);if(!c)b.hidden=true;
+    b.dataset.name=b.textContent.trim();b.appendChild(document.createTextNode(" "));var s=document.createElement("span");s.textContent=c;b.appendChild(s);if(!c)b.hidden=true;
     if(KIND[b.dataset.f]){var sw=document.createElement("i");sw.style.background=KIND[b.dataset.f][1];sw.setAttribute("aria-hidden","true");b.insertBefore(sw,b.firstChild);}
     b.onclick=function(){setFilter(b.dataset.f);};
   });

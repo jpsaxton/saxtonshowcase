@@ -24,6 +24,7 @@
 html, body { height: 100%; margin: 0; }
 body { background: #bfe3ef; color: var(--ink); font-family: var(--display); overflow: hidden; -webkit-font-smoothing: antialiased; transition: background-color 300ms linear; }
 canvas#gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
+#gl:focus-visible { outline: 4px solid #151515; outline-offset: -4px; }
 .ui {
   position: fixed; inset: 0; pointer-events: none;
   display: flex; flex-direction: column; justify-content: space-between; gap: 10px;
