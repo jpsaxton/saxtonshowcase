@@ -64,6 +64,9 @@ body.ship .draft-banner{display:none}body.ship [data-draft]::after,body.ship [da
 .btn:focus-visible,.mnav a:focus-visible,.older a:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
 .film small{display:block;font:400 11px var(--mono);margin-top:10px}
 
+.hers{font:700 clamp(19px,2.2vw,24px)/1.35 var(--read);max-width:760px;margin:0 0 18px}
+.section-head .hers{margin:-14px 0 30px}
+.doors .hers:first-of-type{margin-top:26px}
 /* the work */
 .work,.play{padding:56px 0 72px;border-top:var(--line)}
 .section-head h2{font:800 clamp(34px,6vw,68px)/.95 var(--display);text-transform:uppercase;letter-spacing:-.04em;margin:0 0 34px}
@@ -164,13 +167,14 @@ footer a{display:inline-block;padding:6px 2px;min-height:28px}
 
 <section class="work" aria-labelledby="workH">
  <div class="wrap">
-  <div class="section-head"><h2 id="workH">What I built</h2></div>
+  <div class="section-head"><h2 id="workH">What I built</h2>
+   <p class="hers">Why show my work at all? Well, because nobody else does. Real life is ups and downs and challenges and struggles.</p></div>
   <div class="cards">
 
    <article class="card wide">
     <span class="tag">iPhone apps</span>
     <h3>Three apps</h3>
-    <p data-draft>Catch Up, the Owners App and Barney.</p>
+    <p>I may not be able to go and rescue every cat right now, but what I can do is create an app in my living room while I am taking care of my kiddos and looking for my next opportunity.</p>
     <div class="phones">
      <figure><img src="/img/app-catchup-start.jpg" width="420" height="474" alt="Catch Up on an iPhone: Never lose track of who called." loading="lazy"><figcaption>Catch Up</figcaption></figure>
      <figure><img src="/img/app-own-home.jpg" width="420" height="474" alt="The Owners App on an iPhone, with Print Station and Newspaper Hall." loading="lazy"><figcaption>Owners App</figcaption></figure>
@@ -182,7 +186,7 @@ footer a{display:inline-block;padding:6px 2px;min-height:28px}
    <article class="card">
     <span class="tag">The print line</span>
     <h3>Printed for real</h3>
-    <p data-draft>Designed in code, printed for real.</p>
+    <p>We wanted to see what else we could build.</p>
     <div class="pic"><img src="/img/print-reveal-lock.jpg" width="1000" height="750" alt="Four round illusion prints that read Grandma, Big Sis, Yes? and Be Mine." loading="lazy"></div>
     <ul class="labels"><li>designed in code</li><li>illusion prints</li><li>NFC tap cards</li><li>print queue app</li></ul>
    </article>
@@ -198,7 +202,8 @@ footer a{display:inline-block;padding:6px 2px;min-height:28px}
    <article class="card">
     <span class="tag">Community</span>
     <h3>Local help</h3>
-    <p data-draft>A local help finder, Is It TP Time? and the Safety Time desk.</p>
+    <p>We have tech that can help connect housing to mothers, food pantries to families, lost pets to owners.</p>
+    <ul class="labels"><li>local help finder</li><li>Is It TP Time?</li><li>Safety Time desk</li></ul>
     <div class="pic"><img src="/img/community-tp-time.jpg" width="700" height="804" alt="Is It TP Time? A toilet paper gauge, from full closet to out." loading="lazy"></div>
     <a class="btn go" href="https://isittptime.com" target="_blank" rel="noopener">Is It TP Time? <span aria-hidden="true">↗</span></a>
    </article>
@@ -206,8 +211,9 @@ footer a{display:inline-block;padding:6px 2px;min-height:28px}
    <article class="card">
     <span class="tag">The kids' show</span>
     <h3>Our kids' show</h3>
-    <p data-draft>Four episodes.</p>
+    <p>You should have seen the look on our kids' face when we made those videos about them and just pulling from clips we already had at moments that we had all forgotten about.</p>
     <div class="pic"><img src="/img/kids-show.jpg" width="1000" height="562" alt="A kid spins in an empty room, arms out, with a SPIN! sticker in the corner." loading="lazy"></div>
+    <ul class="labels"><li>four episodes</li></ul>
    </article>
 
    <article class="card">
@@ -221,7 +227,7 @@ footer a{display:inline-block;padding:6px 2px;min-height:28px}
     <span class="tag">My AI team</span>
     <h3>The cousins</h3>
     <ul class="names" aria-label="My AI team"><li>Nova</li><li>Lola</li><li>Rook</li><li>Quill</li><li>Milo</li><li>Amy</li></ul>
-    <p data-draft>Nothing goes out until a person says yes.</p>
+    <p>What I've been saying for so long is AI is just treat it like another person, treat it like your workforce, treat it like your friend, your neighbor.</p>
    </article>
 
   </div>
@@ -259,6 +265,8 @@ footer a{display:inline-block;padding:6px 2px;min-height:28px}
   <h2 id="whyH">Why I haven't quit</h2>
   <blockquote>Never restart, always continue learning from your mistakes.</blockquote>
   <blockquote>The world needs hope and extraordinary things can now be done.</blockquote>
+  <blockquote>Let's take away some of the world's anxiety and worry by replacing it with dreams and hope.</blockquote>
+  <blockquote class="small">AI is giving back my mental capacity to be able to be here with my family.</blockquote>
   <blockquote class="small" data-ok>I love what I do and need to find my sparkle again.</blockquote>
   <blockquote class="big">This is why AI.</blockquote>
  </div>
@@ -266,7 +274,12 @@ footer a{display:inline-block;padding:6px 2px;min-height:28px}
 
 <section class="doors" aria-labelledby="doorsH">
  <div class="wrap">
-  <h2 id="doorsH">I want to build <span>and teach.</span></h2>
+  <div>
+   <h2 id="doorsH">I want to build <span>and teach.</span></h2>
+   <p class="hers">My hope is that that can actually become a career, and I become that enablement expert out there for others to be able to see AI isn't scary, it isn't dangerous. Well, a little bit.</p>
+   <p class="hers">We are two parents living in Perrysburg who are just trying to do our best right now. And we see the power that AI has.</p>
+   <p class="hers">I worked at the same company for 13 years and am on my break, as I will call it, looking for my next opportunity.</p>
+  </div>
   <div class="biz">
    <div class="kicker">AI, but make it real.</div>
    <p>We are approachable. Helpful. Real. Honest. We are not AI fanatics but we see the value. We can help you.</p>
