@@ -1,0 +1,754 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Saxton Showcase</title>
+<meta name="description" content="Free games, toys, tools and labs we built at home with Amy, our AI helper. Each one is a single web page: play it here or download it and keep it. MIT licensed, no sign-up.">
+<link rel="canonical" href="https://saxtonshowcase.com/shelf/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Saxton Showcase">
+<meta property="og:title" content="Saxton Showcase: we build stuff, you can have it">
+<meta property="og:description" content="Free games, toys, tools and labs we built at home with Amy, our AI helper. Each one is a single web page: play it here or download it and keep it. MIT licensed, no sign-up.">
+<meta property="og:url" content="https://saxtonshowcase.com/shelf/">
+<meta property="og:image" content="https://saxtonshowcase.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Saxton Showcase board: colourful jigsaw pieces, one per build, under the headline We build stuff. You can have it.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23F7F4FF'/%3E%3Cpath d='M10 14h14a6 6 0 1 1 12 0h18v16a6 6 0 1 0 0 12v12H36a6 6 0 1 0-12 0H10V42a6 6 0 1 1 0-12z' fill='%23FF4F6D' stroke='%231A1540' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E">
+<!-- Preloading the headline and body fonts stops the page jumping when they arrive (measured layout shift 0.15 desktop, up to 0.7 phone, to 0). -->
+<link rel="preload" href="/fonts/Unbounded.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/AtkinsonHyperlegible-400.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+/* The three fonts live beside the page (fonts/, SIL Open Font License, licenses alongside), so the page and its offline copy look the same and a visit makes no outside request. */
+@font-face{font-family:"Unbounded";src:url(/fonts/Unbounded.woff2) format("woff2");font-weight:700 800;font-display:swap}
+@font-face{font-family:"Atkinson Hyperlegible";src:url(/fonts/AtkinsonHyperlegible-400.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Atkinson Hyperlegible";src:url(/fonts/AtkinsonHyperlegible-700.woff2) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"Martian Mono";src:url(/fonts/MartianMono-400.woff2) format("woff2");font-weight:400;font-display:swap}
+/* Daylight: lilac paper, candy pieces with ink outlines like stickers. Same layout as Orbit. */
+:root{
+  color-scheme:light;
+  --night:#F7F4FF; --panel:#FFFFFF; --edge:#DDD4F5; --ink:#1A1540; --tray:#ECE5FF;
+  --text:#1A1540; --muted:#524A78; --lav:#6B4FD8;
+  --tomato:#FF4F6D; --marigold:#FFE066; --grass:#C6F432; --pool:#22D3C5; --grape:#B45CF0; --bubble:#FF7AC8;
+  --display:"Unbounded","Arial Black","Helvetica Neue",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"Martian Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  /* Type sizes, one per job: date 12, label 13, small 15, body 17, lede 20, card title 20, detail title 30, then the two headlines. */
+}
+*{box-sizing:border-box}
+html{background:var(--night)}
+body{background:var(--night);color:var(--text);font-family:var(--body);font-size:17px;line-height:1.55;padding-inline:20px;margin:0}
+.wrap{max-width:1180px;margin:0 auto}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--lav);outline-offset:3px;border-radius:8px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.1}
+.date{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.lbl{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.03em}
+.skip{position:absolute;left:12px;top:-60px;z-index:70;background:var(--ink);color:var(--night);padding:10px 14px;border-radius:10px;font-weight:700;text-decoration:none}
+.skip:focus{top:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* crooked letters, like the pieces */
+.crooked .w{display:inline-block;white-space:nowrap}
+.crooked .ch{display:inline-block}
+
+nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;padding-block:20px}
+nav .l,nav .r{display:flex;gap:20px}
+nav .r{justify-content:flex-end}
+nav a{text-decoration:none;display:inline-block;padding-block:10px}
+nav a:hover{color:var(--lav)}
+.word{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--display);font-weight:800;font-size:clamp(15px,5vw,20px);letter-spacing:.06em;white-space:nowrap}
+.word svg{width:30px;height:46px;overflow:visible;transition:transform .3s}
+.word:hover svg{transform:rotate(-6deg) scale(1.08)}
+.word:hover .ch{animation:hop .45s ease both}
+@keyframes hop{50%{translate:0 -4px}}
+@media (prefers-reduced-motion:reduce){.word:hover .ch{animation:none}.word svg{transition:none}.word:hover svg{transform:none}}
+
+/* hero: the headline, then the board itself */
+.hero{padding-block:40px 24px}
+.hero .top{display:grid;grid-template-columns:1.4fr 1fr;gap:32px;align-items:end;margin-bottom:28px}
+.hero h1{font-weight:800;font-size:clamp(44px,7.4vw,100px);line-height:.98;letter-spacing:-.02em}
+.hero .lede{font-size:20px;color:var(--muted);margin:0 0 6px;max-width:34ch}
+.hero .lede a{color:var(--text);font-weight:700;text-decoration-thickness:2px;text-underline-offset:3px}
+.board{background:var(--tray);border:1px solid var(--edge);border-radius:28px;padding:28px;scroll-margin-top:12px}
+.board:focus{outline:none}
+.board > svg{display:block;width:100%;height:auto;margin:0 auto;overflow:visible}
+.bp{transition:transform 1.1s cubic-bezier(.2,1.25,.4,1);transform-box:fill-box;transform-origin:center;cursor:pointer}
+.scattered .bp{transform:translate(var(--dx),var(--dy)) rotate(var(--rot))}
+.bp .shape{transition:stroke-width .15s}
+.bp:hover .shape,.bp:focus-visible .shape{stroke:#1A1540;stroke-width:6}
+.bp text{pointer-events:none}
+.board .row{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-top:22px}
+.board .row p{margin:0;color:var(--muted);font-size:15px}
+.btn{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.03em;text-decoration:none;padding:13px 18px;border-radius:12px;border:1px solid var(--text);background:var(--text);color:var(--night);cursor:pointer;display:inline-block}
+.btn.ghost{background:transparent;color:var(--text);border-color:var(--edge)}
+.btn:hover{transform:translateY(-1px)}
+
+section{padding-block:64px}
+.head{display:flex;justify-content:space-between;align-items:end;gap:24px;flex-wrap:wrap;margin-bottom:28px}
+.head h2{font-weight:800;font-size:clamp(30px,4.4vw,54px);line-height:1.04;letter-spacing:-.02em}
+.head p{max-width:44ch;color:var(--muted);margin:0}
+
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding-top:0;position:relative}
+.duo > div{border-top:3px solid var(--c);padding-top:16px}
+.duo h3{font-weight:700;font-size:20px;margin:0 0 8px}
+.duo p{margin:0;color:var(--muted);font-size:16px;max-width:60ch}
+
+/* library */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.chip{font-family:var(--display);font-weight:700;font-size:13px;padding:9px 14px;border-radius:999px;border:1px solid var(--edge);background:transparent;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--text);color:var(--night);border-color:var(--text)}
+.chip i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:7px;vertical-align:-1px;border:1px solid var(--ink)}
+
+
+/* the empty slot, in butter */
+.cta{background:var(--marigold);color:var(--ink);border-radius:28px;padding:48px 32px;display:grid;grid-template-columns:auto 1fr;gap:32px;align-items:center}
+.cta svg{width:150px;height:150px;overflow:visible}
+.cta h2{font-weight:800;font-size:clamp(30px,4.4vw,54px);line-height:1.04;letter-spacing:-.02em}
+.cta p{color:#3A335F;margin:12px 0 22px;max-width:46ch}
+.cta .btn{background:var(--ink);color:var(--marigold);border-color:var(--ink)}
+.cta .btn.ghost{background:transparent;color:var(--ink);border-color:var(--ink);margin-left:8px}
+.cta :focus-visible{outline-color:var(--ink)}
+
+footer{display:grid;grid-template-columns:1.4fr repeat(2,1fr);gap:24px;padding-block:48px 64px;border-top:1px solid var(--edge);margin-top:40px}
+footer .fh{font-family:var(--display);font-weight:700;font-size:13px;margin:0 0 10px}
+footer ul{list-style:none;margin:0;padding:0;display:grid;gap:0;font-size:15px}
+footer a{text-decoration:none}
+footer li a{display:inline-block;padding-block:8px}
+footer a:hover{color:var(--lav)}
+footer .note{color:var(--muted);margin:12px 0 0;font-size:16px}
+
+/* detail view, gallery style */
+.detail{position:fixed;inset:0;z-index:50;background:var(--night);overflow-y:auto;padding:max(20px,env(safe-area-inset-top,0px)) 20px 28px}
+.detail .top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.detail .close,.detail .nav button{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.03em;background:none;border:0;cursor:pointer;padding:8px 10px;min-height:44px}
+.detail .desc{align-self:center;background:var(--panel);border:1px solid var(--edge);border-radius:18px;padding:20px}
+.detail .desc .kind{font-size:13px;color:var(--muted)}
+.detail .desc h2{font-weight:800;font-size:30px;letter-spacing:-.02em;margin:2px 0 8px}
+.detail .desc p{margin:0 0 14px;color:var(--muted)}
+.detail .nav{display:flex;justify-content:center;gap:24px}
+@media (max-width:900px){
+  .hero .top{grid-template-columns:1fr;gap:18px}
+  .duo{grid-template-columns:1fr}
+  footer{grid-template-columns:1fr 1fr}
+  footer > div{min-width:0}
+  footer > div:first-child{grid-column:1/-1}
+}
+@media (max-width:620px){
+  nav{grid-template-columns:1fr;justify-items:center;gap:10px}
+  /* On a phone the links share one row under the name; the hero's own Play something button sits just below, so the nav copy steps aside. */
+  nav{display:flex;flex-wrap:wrap;justify-content:center;gap:0 18px;padding-bottom:4px}
+  nav .word{flex-basis:100%;justify-content:center;order:-1}
+  nav .l,nav .r{display:contents}
+  nav .r .playSome{display:none}
+  .board{padding:14px;border-radius:20px}
+  .cta{grid-template-columns:1fr;padding:32px 22px;gap:16px}
+  .cta svg{width:96px;height:96px}
+  .cta .btn.ghost{margin:8px 0 0}
+}
+/* board toolbar, list view, empty state */
+.tools{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.tools .chips{margin:0}
+.chip span{font-family:var(--mono);font-weight:400;font-size:12px;margin-left:7px;opacity:.7}
+.tools .right{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.find input{font:inherit;font-size:15px;padding:9px 16px;border-radius:999px;border:1px solid #7E73B0;background:var(--panel);color:var(--text);width:190px}
+.seg{display:inline-flex;border:1px solid var(--edge);border-radius:999px;padding:3px;background:var(--panel)}
+.seg button{font-family:var(--display);font-weight:700;font-size:13px;border:0;background:none;padding:7px 15px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--text);color:var(--night)}
+.plist{list-style:none;margin:0;padding:0;background:var(--panel);border:1px solid var(--edge);border-radius:18px;overflow:hidden}
+.plist li + li{border-top:1px solid var(--edge)}
+.plist button{display:grid;grid-template-columns:44px minmax(0,1fr) auto 64px;gap:16px;align-items:center;width:100%;padding:12px 18px;background:none;border:0;text-align:left;cursor:pointer}
+.plist button:hover{background:color-mix(in srgb,var(--c) 16%,#FFFFFF)}
+.plist .pc svg{width:42px;height:42px;overflow:visible;display:block}
+.plist .nm{min-width:0}
+.plist b{display:block;font-family:var(--display);font-weight:700;font-size:17px}
+.plist .one{display:block;color:var(--muted);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plist .k{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted);white-space:nowrap}
+.plist .k i{width:9px;height:9px;border-radius:2px;background:var(--c)}
+.plist .date{text-align:right}
+.empty{text-align:center;padding:48px 12px;color:var(--muted)}
+.empty p{margin:0 0 14px}
+.bp.slot{cursor:pointer}
+[hidden]{display:none !important}
+
+/* detail: the build running live in a frame, a sticker on the corner */
+.detail .stage{display:grid;align-items:center;padding-block:20px;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:40px;max-width:1180px;margin:0 auto;min-height:calc(100% - 110px)}
+.screen{position:relative}
+.screen .frame{position:relative;aspect-ratio:2/1;border-radius:22px;overflow:hidden;border:2px solid var(--ink);background:var(--ink);box-shadow:10px 10px 0 var(--c)}
+.screen iframe{position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none;background:var(--ink)}
+.screen .frame.wide iframe{width:1100px;height:550px;transform-origin:0 0;transform:scale(var(--s,.5))}
+.screen .go{position:absolute;inset:0;width:100%;background:transparent;border:0;cursor:pointer;display:flex;align-items:flex-end;justify-content:flex-end;padding:16px}
+.screen .go span{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.03em;padding:11px 16px;border-radius:12px;background:var(--c);color:var(--ink);border:2px solid var(--ink);transition:transform .15s}
+.screen .go:hover span,.screen .go:focus-visible span{transform:translateY(-2px) rotate(-2deg)}
+.screen .sticker{position:absolute;left:-28px;top:-34px;width:96px;height:96px;overflow:visible;transform:rotate(-12deg);pointer-events:none;z-index:2}
+.screen .cap{margin:18px 0 0;font-size:13px;color:var(--muted)}
+.pv-toggle{position:absolute;top:12px;right:12px;z-index:3;font-family:var(--display);font-weight:700;font-size:13px;padding:8px 12px;border-radius:10px;border:2px solid var(--ink);background:var(--night);color:var(--ink);cursor:pointer}
+.still{position:absolute;inset:0;display:grid;place-items:center;background:var(--ink);color:var(--night);text-align:center;padding:16px}
+.still svg{width:120px;height:120px;overflow:visible}
+.still p{margin:8px 0 0;font-size:15px}
+.ghostart{display:grid;place-items:center;text-align:center;gap:10px}
+.ghostart svg{width:min(100%,340px);height:auto;overflow:visible}
+.ghostart p{margin:0;color:var(--muted)}
+.pills{list-style:none;margin:0 0 18px;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.pills li{border:1px solid var(--edge);border-radius:999px;padding:4px 12px;font-size:15px}
+.pills li.date{font-size:12px;padding-block:6px}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.detail .desc h3.sub{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.03em;color:var(--lav);margin:18px 0 6px}
+.detail .desc h3.sub:first-of-type{margin-top:4px}
+.whycols{display:grid;grid-template-columns:1fr;gap:28px}
+.whycols p{margin:0;color:var(--muted);max-width:60ch}
+.sortby select{font:inherit;font-size:15px;padding:9px 14px;border-radius:999px;border:1px solid #7E73B0;background:var(--panel);color:var(--text);cursor:pointer}
+.topget{margin:14px 0 0}
+.rowacts{display:flex;gap:10px;flex-wrap:wrap}
+#ideaForm{display:grid;gap:8px;max-width:520px}
+#ideaForm label{font-weight:700;font-size:15px}
+#ideaForm textarea,#ideaForm input{font:inherit;font-size:16px;width:100%;padding:10px 14px;border:2px solid var(--ink);border-radius:12px;background:#FFFDF2;color:var(--ink)}
+#ideaForm .fine{margin:2px 0 6px;font-size:15px;color:#3A335F}
+#ideaForm .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.formacts{display:flex;gap:8px;flex-wrap:wrap}.formacts .btn.ghost{margin:0}
+#ideaMsg{margin:4px 0 0;font-weight:700;min-height:1.5em}
+@media (prefers-reduced-motion:reduce){.bp{transition:none}.btn:hover{transform:none}.screen .go span{transition:none}.screen .go:hover span,.screen .go:focus-visible span{transform:none}}
+.nojs{padding:16px 0;font-weight:700}
+.soon{font-family:var(--display);font-weight:700;font-size:13px;color:var(--lav);border:1px dashed var(--lav);border-radius:12px;padding:12px 16px}
+
+@media print{
+  nav .l,nav .r,.tools,#snap,.getAll,#heroPlay,#ideaForm,.detail,.play,.nojs{display:none!important}
+  html,body{background:#fff}
+  .board{background:#fff;break-inside:avoid}
+  .bp{transition:none}
+  section,.cta{break-inside:avoid}
+}
+
+/* play: the whole build, full screen */
+.play{position:fixed;inset:0;z-index:60;background:var(--ink);display:flex;flex-direction:column}
+.play .bar{display:flex;align-items:center;gap:12px;padding:10px 14px;padding-top:max(10px,env(safe-area-inset-top,0px));background:var(--night);border-bottom:2px solid var(--ink)}
+.play .bar svg{width:38px;height:38px;overflow:visible;display:block;transform:rotate(-8deg)}
+.play .who{min-width:0}
+.play .who b{display:block;font-family:var(--display);font-weight:700;font-size:17px}
+.play .who span{display:block;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.play .bar .btn{margin-left:auto;padding:10px 18px;min-height:44px}
+.play iframe{flex:1;width:100%;border:0;background:var(--ink)}
+@media (max-width:900px){
+  .detail .stage{grid-template-columns:1fr;gap:28px;padding-top:36px;min-height:0}
+  .screen .sticker{width:72px;height:72px;left:-10px;top:-30px}
+}
+@media (max-width:620px){
+  .tools .right{width:100%;justify-content:space-between}
+  .find{flex:1}.find input{width:100%}
+  .plist button{grid-template-columns:40px minmax(0,1fr);gap:4px 12px;padding:12px 14px}
+  .plist .k{grid-column:2;white-space:normal}
+  .plist b{white-space:normal}
+  .board{display:flex;flex-direction:column}
+  .board > svg{order:-1;margin-bottom:16px}
+  .plist .date{display:none}
+  .screen .frame{border-radius:16px;box-shadow:6px 6px 0 var(--c)}
+}
+</style>
+
+<div class="wrap">
+  <a class="skip" href="#pieces">Skip to the pieces</a>
+  <nav>
+    <div class="l lbl"><a href="#pieces">Pieces</a><a href="#why">Why</a><a class="onsite" href="/about/">About</a><a class="onsite" href="/">Front door</a></div>
+    <a class="word" href="#top" aria-label="Saxton Showcase home"><svg viewBox="-14 -26 112 172" aria-hidden="true" id="mark"></svg><span class="crooked">SAXTON SHOWCASE</span></a>
+    <div class="r lbl"><a href="#pieces" class="playSome">Play something</a><a href="#idea">Say hi</a></div>
+  </nav>
+
+  <main id="main">
+  <noscript><style>.board,#heroPlay,.playSome{display:none!important}</style><p class="nojs">This page needs JavaScript to show the builds. Every build is also in <a href="/6-saxton-showcase-all.zip">one download</a>.</p></noscript>
+
+  <header class="hero" id="top">
+    <div class="top">
+      <h1 class="crooked" data-amp="2.2" data-rot="6">We build stuff. You can have it.</h1>
+      <div><p class="lede">Games, toys, labs and tools we built with Amy, our AI helper, some to learn something and some just for fun. No two pieces match, and they fit anyway. Jump to the <a href="#pieces" data-jump="toy">toys</a>, the <a href="#pieces" data-jump="lab">labs</a>, the <a href="#pieces" data-jump="tool">tools</a>, the <a href="#pieces" data-jump="game">games</a>, or the <a href="#pieces" data-jump="sim">life sims</a>.</p>
+      <p class="topget rowacts"><button class="btn playSome" type="button" id="heroPlay">Play something</button><a class="btn ghost getAll" href="/6-saxton-showcase-all.zip" download>Download all of them</a></p></div>
+    </div>
+    <div class="board" id="pieces" tabindex="-1">
+      <h2 class="sr">All the pieces</h2>
+      <div class="tools">
+        <div class="chips" role="group" aria-label="Show only">
+          <button class="chip" data-f="all" aria-pressed="true">Everything</button>
+          <button class="chip" data-f="game" aria-pressed="false">Games</button>
+          <button class="chip" data-f="sim" aria-pressed="false">Life sim</button>
+          <button class="chip" data-f="toy" aria-pressed="false">Toys</button>
+          <button class="chip" data-f="tool" aria-pressed="false">Tools</button>
+          <button class="chip" data-f="lab" aria-pressed="false">Labs</button>
+          <button class="chip" data-f="workshop" aria-pressed="false">In the workshop</button>
+        </div>
+        <div class="right">
+          <label class="find" hidden><span class="sr">Find a piece</span><input type="search" id="find" placeholder="Find a piece" autocomplete="off"></label>
+          <label class="sortby"><span class="sr">Sort the pieces</span><select id="sort"><option value="pick">Our order</option><option value="new">Newest first</option><option value="old">Oldest first</option><option value="az">A to Z</option><option value="kind">By kind</option></select></label><div class="seg" role="group" aria-label="Show the pieces as"><button type="button" data-view="puzzle" aria-pressed="true">Puzzle</button><button type="button" data-view="list" aria-pressed="false">List</button></div>
+        </div>
+      </div>
+      <svg id="board" class="scattered" viewBox="-50 -50 900 500" role="group" aria-label="Puzzle pieces, one per build"></svg>
+      <ol class="plist" id="plist" hidden></ol>
+      <div class="empty" id="bEmpty" hidden><p>Nothing matches that.</p><button class="btn ghost" type="button" id="bClear">Show everything</button></div>
+      <div class="row">
+        <p id="boardState" aria-live="polite"></p>
+        <span class="rowacts"><a class="btn ghost getAll" href="/6-saxton-showcase-all.zip" download>Download all of them</a><button class="btn ghost" id="snap" type="button">Scatter them</button></span>
+      </div>
+    </div>
+  </header>
+
+  <section class="duo" aria-labelledby="howH"><h2 class="sr" id="howH">How it works</h2>
+    <div style="--c:var(--pool)"><h3>Every piece works on its own</h3><p>Each build is one web page. Open it in a browser and play. Nothing to install, no account, and it keeps working with the wifi off. Download one and it's yours: the game in a single file, and beside it a second download with the notes on what we learned, written so your AI helper can read them too. Every build here is free under the <a href="/LICENSE">MIT License</a>, and the fonts come with their own open licence (the SIL Open Font License, whose text travels with the fonts); if you make one better, send it back.</p></div>
+    <div style="--c:var(--lav)"><h3>The empty slot stays open</h3><p>There's room on the board for the next build. If your family needs something, tell us. It might be the next piece.</p></div>
+  </section>
+
+  <section id="why" aria-labelledby="whyH">
+    <div class="head"><h2 id="whyH">Why an AI builds toys</h2></div>
+    <div class="whycols">
+      <p>Amy is our AI helper, and she built every piece here. Most she picked herself, one at a time, to learn something. In most of those she writes down what she expects before she measures, and keeps the misses. The arcade games, the life sims and Promptling were our idea: we asked, she built them. Every piece tells you what it taught her.</p>
+    </div>
+  </section>
+
+
+  <section id="idea">
+    <div class="cta">
+      <svg id="ctaSlot" viewBox="-70 -70 340 340" aria-hidden="true"></svg>
+      <div>
+        <h2>Got an idea for the next piece?</h2>
+        <p>Tell us what your family keeps doing by hand. Some of these were built to learn something and some because we asked; the next one could be built for you.</p>
+        <form id="ideaForm" method="post" action="/api/ideas" novalidate>
+          <label for="ideaText">What does your family keep doing by hand?</label>
+          <textarea id="ideaText" name="idea" rows="3" maxlength="2000" required></textarea>
+          <label for="ideaEmail">Your email, only if you want a reply</label>
+          <input id="ideaEmail" name="email" type="email" maxlength="200" autocomplete="email">
+          <input type="hidden" name="page" value="saxton-showcase">
+          <div class="hp" aria-hidden="true"><label>Leave this empty <input name="website" tabindex="-1" autocomplete="off"></label></div>
+          <p class="fine">Your idea goes to the people who run this site. Sending one is free, and it is an idea, not an order: we cannot promise to build it. Leave the email out if you do not want a reply.</p>
+          <div class="formacts"><button class="btn" id="ideaSend" type="submit">Send the idea</button><a class="btn ghost" href="#pieces">See every piece</a></div>
+          <p id="ideaMsg" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </div>
+  </section>
+  </main>
+
+  <footer>
+    <div><div class="word" style="font-size:17px"><svg viewBox="-14 -26 112 172" aria-hidden="true" class="mark2"></svg><span class="crooked">SAXTON SHOWCASE</span></div>
+      <p class="note">Built by us, with Amy.<br>The builds are free to use under the <a href="/LICENSE" style="color:var(--text);font-weight:700">MIT License</a>; the fonts under their own open licence.</p></div>
+    <div><h2 class="fh">Pieces</h2><ul><li><a href="#pieces" data-jump="toy">Toys</a></li><li><a href="#pieces" data-jump="lab">Labs</a></li><li><a href="#pieces" data-jump="tool">Tools</a></li><li><a href="#pieces" data-jump="game">Games</a></li><li><a href="#pieces" data-jump="sim">Life sims</a></li></ul></div>
+    <div><h2 class="fh">Us</h2><ul><li><a href="#why">Why we build these</a></li><li><a href="#idea">Suggest a piece</a></li><li class="onsite"><a href="/about/">About</a></li></ul></div>
+  </footer>
+</div>
+
+<div class="detail" id="detail" hidden role="dialog" aria-modal="true" aria-labelledby="dName">
+  <div class="top">
+    <span class="word" style="font-size:16px"><svg viewBox="-14 -26 112 172" aria-hidden="true" class="mark2"></svg><span class="crooked">SAXTON SHOWCASE</span></span>
+    <button class="close" id="dClose" type="button">Close</button>
+  </div>
+  <div class="stage">
+    <div class="screen" id="dScreen"></div>
+    <div class="desc"><div class="kind" id="dKind"></div><h2 id="dName"></h2><h3 class="sub">For you</h3><p id="dText"></p><div id="dLearn"><h3 class="sub">What it taught Amy</h3><p id="dTaught"></p></div><ul class="pills" id="dFacts"></ul><div id="dActs" class="acts"></div></div>
+  </div>
+  <div class="nav"><button type="button" id="dPrev"></button><button type="button" id="dNext"></button></div>
+</div>
+
+<div class="play" id="play" hidden role="dialog" aria-modal="true" aria-labelledby="pName">
+  <div class="bar"><span id="pSticker"></span><div class="who"><b id="pName"></b><span id="pHint"></span></div><button class="btn" id="pBack" type="button">Back</button></div>
+  <iframe id="pFrame" title="Build" allow="autoplay; fullscreen; clipboard-write"></iframe>
+</div>
+
+<script>
+(function(){
+  var NS="http://www.w3.org/2000/svg";
+  function el(n,a){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);return e;}
+  // Pieces. Every seam is one shared line walked by both neighbours, so any mix of shapes still fits.
+  var PROF={
+    round:[["L",.36,0],["C",.44,.04,.28,.19,.5,.19],["C",.72,.19,.56,.04,.64,0],["L",1,0]],
+    blob:[["L",.22,0],["C",.28,.12,.08,.27,.38,.29],["C",.68,.31,.72,.10,.60,0],["L",1,0]],
+    jagged:[["L",.2,0],["L",.3,.15],["L",.39,.04],["L",.5,.21],["L",.6,.03],["L",.7,.14],["L",.8,0],["L",1,0]],
+    key:[["L",.36,0],["L",.36,.1],["L",.27,.1],["L",.27,.22],["L",.69,.22],["L",.69,.1],["L",.6,.1],["L",.6,0],["L",1,0]],
+    wave:[["C",.18,.2,.32,.2,.5,0],["C",.68,-.2,.82,-.2,1,0]],
+    bolt:[["L",.28,0],["L",.46,.22],["L",.5,.09],["L",.7,.24],["L",.64,0],["L",1,0]],
+    flat:[["L",1,0]]
+  };
+  var TYPES=["round","jagged","blob","key","wave","bolt"];
+  function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;var q=Math.imul(seed^seed>>>15,1|seed);q=q+Math.imul(q^q>>>7,61|q)^q;return((q^q>>>14)>>>0)/4294967296;};}
+  function seam(A,B,type,sign){
+    var dx=B[0]-A[0],dy=B[1]-A[1],len=Math.hypot(dx,dy),nx=-dy/len,ny=dx/len,cur=[0,0],pts=[[0,0]];
+    PROF[type].forEach(function(s){
+      if(s[0]==="L"){cur=[s[1],s[2]];pts.push(cur);return;}
+      var p0=cur;
+      for(var k=1;k<=14;k++){var q=k/14,u=1-q,a=u*u*u,b=3*u*u*q,c=3*u*q*q,d=q*q*q;pts.push([a*p0[0]+b*s[1]+c*s[3]+d*s[5],a*p0[1]+b*s[2]+c*s[4]+d*s[6]]);}
+      cur=[s[5],s[6]];
+    });
+    return pts.map(function(p){return [A[0]+dx*p[0]+nx*len*p[1]*sign,A[1]+dy*p[0]+ny*len*p[1]*sign];});
+  }
+  function toPath(runs){var d="";runs.forEach(function(run,i){run.forEach(function(p,j){if(i&&!j)return;d+=(d?" L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1);});});return d+" Z";}
+  // rows x cols pieces with wobbly corners and a different seam on every shared edge.
+  function board(R,Cn,S,rnd,opt){
+    opt=opt||{};var j=(opt.jitter||0)*S,V=[],r,c,types=(opt.types||[]).slice(),ti=Math.floor(rnd()*TYPES.length);
+    function pick(){return types.length?types.shift():TYPES[(ti++)%TYPES.length];}
+    for(r=0;r<=R;r++){V[r]=[];for(c=0;c<=Cn;c++){
+      var onRow=r===0||r===R,onCol=c===0||c===Cn,x=c*S,y=r*S;
+      if(opt.wild||!onCol)x+=(rnd()*2-1)*j;
+      if(opt.wild||!onRow)y+=(rnd()*2-1)*j;
+      V[r][c]=[x,y];}}
+    function mk(A,B,outer){return (outer&&!opt.wild)?seam(A,B,"flat",1):seam(A,B,pick(),rnd()<.5?1:-1);}
+    var Hs=[],Vs=[];
+    for(r=0;r<=R;r++){Hs[r]=[];for(c=0;c<Cn;c++)Hs[r][c]=mk(V[r][c],V[r][c+1],r===0||r===R);}
+    for(r=0;r<R;r++){Vs[r]=[];for(c=0;c<=Cn;c++)Vs[r][c]=mk(V[r][c],V[r+1][c],c===0||c===Cn);}
+    var cells=[];
+    for(r=0;r<R;r++)for(c=0;c<Cn;c++){
+      cells.push({d:toPath([Hs[r][c],Vs[r][c+1],Hs[r+1][c].slice().reverse(),Vs[r][c].slice().reverse()]),
+        cx:(V[r][c][0]+V[r][c+1][0]+V[r+1][c][0]+V[r+1][c+1][0])/4,cy:(V[r][c][1]+V[r][c+1][1]+V[r+1][c][1]+V[r+1][c+1][1])/4});
+    }
+    return cells;
+  }
+  function onePiece(seed){return board(1,1,200,rng(seed),{wild:true,jitter:.1})[0].d;}
+  function mix(hex,amt,to){
+    var a=parseInt(hex.slice(1),16),b=parseInt(to.slice(1),16),o=[16,8,0].map(function(s){var x=(a>>s)&255,y=(b>>s)&255;return Math.round(x+(y-x)*amt);});
+    return "#"+o.map(function(v){return ("0"+v.toString(16)).slice(-2);}).join("");
+  }
+  var gid=0;
+  // WCAG relative luminance, so the label is whichever of ink or white reads better on the piece.
+  function relLum(hex){var n=parseInt(hex.slice(1),16);return [16,8,0].map(function(s){var c=((n>>s)&255)/255;return c<=.03928?c/12.92:Math.pow((c+.055)/1.055,2.4);}).reduce(function(a,c,i){return a+c*[.2126,.7152,.0722][i];},0);}
+  function labelInk(hex){var L=relLum(hex),ink=relLum("#1A1540");return (L+.05)/(ink+.05)>=1.05/(L+.05)?"#1A1540":"#FFFFFF";}
+  function lum(hex){var n=parseInt(hex.slice(1),16);return (.2126*((n>>16)&255)+.7152*((n>>8)&255)+.0722*(n&255))/255;}
+  // Six fills so no two neighbours look alike: dots, stripes, checks, zigzags, waves, confetti, or plain.
+  function patFill(svg,hex,pat,u){
+    var id="p"+(gid++),defs=el("defs",{}),ink=lum(hex)>.5?"rgba(13,10,34,.26)":"rgba(255,255,255,.32)",w=u,h=u;
+    if(pat==="waves")w=u*2;if(pat==="confetti"){w=u*2;h=u*2;}
+    var P=el("pattern",{id:id,patternUnits:"userSpaceOnUse",width:w,height:h});
+    P.appendChild(el("rect",{width:w,height:h,fill:hex}));
+    if(pat==="dots")P.appendChild(el("circle",{cx:u/2,cy:u/2,r:u*.2,fill:ink}));
+    if(pat==="stripes"){P.setAttribute("patternTransform","rotate(35)");P.appendChild(el("rect",{width:u*.38,height:u,fill:ink}));}
+    if(pat==="check"){P.appendChild(el("rect",{width:u/2,height:u/2,fill:ink}));P.appendChild(el("rect",{x:u/2,y:u/2,width:u/2,height:u/2,fill:ink}));}
+    if(pat==="zig")P.appendChild(el("polyline",{points:"0,"+u*.7+" "+u/2+","+u*.3+" "+u+","+u*.7,fill:"none",stroke:ink,"stroke-width":u*.14,"stroke-linejoin":"round"}));
+    if(pat==="waves")P.appendChild(el("path",{d:"M0 "+u/2+" Q"+u/2+" 0 "+u+" "+u/2+" T"+2*u+" "+u/2,fill:"none",stroke:ink,"stroke-width":u*.13}));
+    if(pat==="confetti")[[.3,.4,20],[1.3,.3,-30],[.8,1.2,50],[1.6,1.5,10],[.2,1.6,-45]].forEach(function(c,k){
+      P.appendChild(el("rect",{x:c[0]*u,y:c[1]*u,width:u*.36,height:u*.14,rx:u*.07,fill:k%2?ink:"rgba(255,255,255,.6)",transform:"rotate("+c[2]+" "+c[0]*u+" "+c[1]*u+")"}));});
+    defs.appendChild(P);svg.appendChild(defs);return "url(#"+id+")";
+  }
+  // A piece: its colour and pattern, a soft light from the top left, a thin bright rim.
+  function glossy(svg,d,hex,ghost,pat,u){
+    if(ghost){svg.appendChild(el("path",{d:d,"class":"shape",fill:"rgba(107,79,216,.06)",stroke:"#6B4FD8","stroke-width":"2.5","stroke-dasharray":"7 7"}));return;}
+    var id="g"+(gid++),defs=el("defs",{}),g=el("radialGradient",{id:id,cx:"32%",cy:"26%",r:"85%"});
+    [[0,"#FFFFFF",.22],[.55,"#FFFFFF",0],[1,"#0D0A22",.14]].forEach(function(s){g.appendChild(el("stop",{offset:s[0],"stop-color":s[1],"stop-opacity":s[2]}));});
+    defs.appendChild(g);svg.appendChild(defs);
+    var fill=(pat&&pat!=="solid")?patFill(svg,hex,pat,u||20):hex;
+    svg.appendChild(el("path",{d:d,"class":"shape",fill:fill,stroke:"#1A1540","stroke-width":(u&&u<10)?"1.1":"2.4","stroke-linejoin":"round"}));
+    svg.appendChild(el("path",{d:d,fill:"url(#"+id+")","pointer-events":"none"}));
+  }
+
+  var C={tomato:"#FF4F6D",marigold:"#FFE066",grass:"#C6F432",pool:"#22D3C5",grape:"#B45CF0",bubble:"#FF7AC8",lav:"#B9A8FF",tangerine:"#FF8A3D",peri:"#8C9BFF"};
+  var PAT=["dots","stripes","check","zig","waves","confetti","solid"];
+  var KIND={game:["Game",C.tomato],sim:["Life sim",C.tangerine],toy:["Playground toy",C.pool],tool:["Tool",C.grass],lab:["Lab",C.peri],workshop:["In the workshop",C.lav]};
+  var items=[
+    {n:"Brickfall",slug:"brickfall",t:"Moving the ball one axis at a time, in steps of half its radius, keeps the collision code short, and at top speed the ball never ended a step inside a brick. A flood fill checks every level for sealed-in bricks before anyone plays it.",pv:"preview=1",k:"game",col:C.tomato,date:"2026-09-23",d:"Knock down twelve hand-built walls, aiming the ball with where it meets the paddle. Chains raise the notes, capsules bring lasers and multi-ball.",stat:"12",sl:"Levels",spec:["Arcade game", "Mouse, touch or arrows", "Aim off the paddle"],acts:["Play it"]},
+    {n:"Glimmer",slug:"glimmer",t:"Tuning by feel was wrong: the first last level asked for more points than even the best bot could score. Playing 400 games per level with two bots set the targets, and one breadth-first sweep handles every chain of special gems.",pv:"preview=1",k:"game",col:C.tomato,date:"2026-09-23",d:"Swap gems to line up three, set off Blasters and Prisms, and ride the cascades up the combo meter through twelve levels.",stat:"12",sl:"Levels",spec:["Arcade game", "Drag, tap or arrows", "Cascading combo chains"],acts:["Play it"]},
+    {n:"Hilltop",slug:"hilltop",t:"With every rule in one pure block, the autopilot plays all three maps headless in under a second each, which turned balancing into measurement. One rotation handles the phone layout for drawing, taps and keys alike.",pv:"preview=1",k:"game",col:C.tomato,date:"2026-09-23",d:"Cheerful critters march up a winding path to your hill. Build and upgrade four kinds of tower to pop them all through 20 waves on three maps.",stat:"60",sl:"Waves across 3 maps",spec:["Arcade game", "Tap or keys to build", "Four towers, six critters"],acts:["Play it"]},
+    {n:"Rooftop Run",slug:"rooftop-run",t:"Clearable is proved, not assumed: a search over real inputs through the game's own physics cleared all 2040 generated roofs it was given, and the same search plays the demo. It also showed the longest jump saves the double jump for low on the way down.",pv:"preview=1",k:"game",col:C.tomato,date:"2026-09-23",d:"Leap gaps, hop chimneys and slide under washing lines as the city speeds up. Every 500 m the sky changes colour, so there is always one more to see.",stat:"2040",sl:"Roofs proven clearable",spec:["Arcade game", "Tap jump, swipe slide", "Sky changes every 500 m"],acts:["Play it"]},
+    {n:"Driftrock",slug:"driftrock",t:"A perfect autopilot is not a convincing one; reaction time is what made it look human. And a tap can land between two game ticks and vanish, so taps are now held just long enough to count.",pv:"preview=1",k:"game",col:C.tomato,date:"2026-09-23",d:"Turn, thrust and drift through a field that wraps at every edge. Split rocks into smaller rocks, chain kills for a multiplier, dodge the saucer.",stat:"7",sl:"Pieces per big rock",spec:["Arcade game", "Turn, thrust, fire", "Rocks split, field wraps"],acts:["Play it"]},
+    {n:"Littlehouse",slug:"littlehouse",t:"A needs-driven house settles wherever its decay rates put it, so a fully furnished house scored the same whatever you bought. The fix was a design change, not a tuning one: a new household starts bare, and every purchase shows on their faces.",pv:"preview=1",k:"sim",col:C.tangerine,date:"2026-09-23",d:"Four little residents run their own lives in a cutaway house. Earn, buy furniture and watch their faces change when there is finally a bed for everyone.",stat:"10",sl:"Furniture pieces",spec:["Life sim", "Tap, click or keys", "They live on their own"],acts:["Play it"]},
+    {n:"Roomy",slug:"roomy",t:"A search that furnishes each room from its own tray in about a second turned level design into measurement, and caught a single bed earning a star in an empty room. Stars now wait until the brief is complete.",pv:"preview=1",k:"sim",col:C.tangerine,date:"2026-09-23",d:"Furnish twelve little rooms to a brief. Drag, turn and repaint the pieces while a live judge checks walkways, light and where every seat faces.",stat:"12",sl:"Rooms to furnish",spec:["Puzzle game", "Drag, turn, repaint", "A judge with receipts"],acts:["Play it"]},
+    {n:"Hearsay Lane",slug:"hearsay-lane",t:"With the random state saved inside the street, a street reloaded mid-run carries on exactly as if never saved, and 40 streets can run 90 days in seconds. The feed stays honest because each line is keyed to the change that just happened.",pv:"preview=1",k:"sim",col:C.tangerine,date:"2026-09-23",d:"Watch a little street of neighbours make friends, feud and fall in love, then stir the pot with parties, introductions, rumours and a garden.",stat:"9",sl:"Relationship states",spec:["Life-sim toy", "Tap people, nudge", "Parties, rumours, weddings"],acts:["Play it"]},
+    {n:"Heirloom",slug:"heirloom",t:"The first layout never overlapped but left about half the families' lines off to one side of their children. A tidy tree over partner groups fixed it across 300 generated families; in-laws whose parents are also in the tree still get a long connector.",pv:"preview=1",k:"sim",col:C.tangerine,date:"2026-09-23",d:"Track your life-sim household across generations: little drawn portraits, partners and adoptions, a tree that lays itself out, and one goal per generation to tick off.",stat:"0",sl:"Overlaps in 21,286 laid-out people",spec:["Browser tool", "Tap, drag, pinch", "Trees that lay themselves out"],acts:["Use it"]},
+    {n:"Plot Twist",slug:"plot-twist",t:"Locks and share codes pull against each other, so every card gets its own sub-seed and a code names each locked card's source. The reels drifted off their rows because the usual height readings round or include the flip in flight; the computed style height does neither.",pv:"preview=1",k:"sim",col:C.tangerine,date:"2026-09-23",d:"Spin up a life-sim challenge: seven cards flip out of a slot-machine reel. Lock the ones you like, re-roll the rest, then tick the run off day by day until the twist lands.",stat:"214",sl:"Entries across 7 lists",spec:["Browser tool", "Space or tap to deal", "Lock, re-roll, share"],acts:["Use it"]},
+    {n:"Promptling",slug:"promptling",t:"Keeping the lessons as one data block made the accuracy rules testable: no digit, product or company name can slip in unnoticed. And teaching fact-checking around a snippet the learner pasted means every answer can be checked inside the lesson itself.",pv:"preview=1",k:"tool",col:C.grass,date:"2026-09-23",d:"Bite-size daily lessons on using AI chat assistants well and safely. Streaks, hearts and a cheerful speech-bubble mascot make good habits oddly moreish.",stat:"169",sl:"Exercises",spec:["Learning app", "Tap or number keys", "Streaks, hearts, Pip"],acts:["Start learning"]},
+    {n:"Wobble Yard",slug:"wobble-yard",t:"The small preview frame needed a mode of its own: the bars hide, it stays silent, and a script drops, flings and bombs on a loop, then starts a fresh yard. Amy's own checks also failed twice for reasons of their own, a ball dropped onto a pile and a bouncy ball caught mid-bounce, so the checks now use an empty yard and the lowest point over a second.",pv:"preview=1",k:"toy",col:C.pool,date:"2026-09-25",d:"A yard of jelly people who flop, bounce and wobble. Drop in crates, balls, balloons, trampolines, fans and a bomb that goes boing, then fling everyone about.",stat:"8",sl:"Things to drop",spec:["Browser toy", "Mouse or touch", "Pin, erase, gravity"],acts:["Play with it"]},
+    {n:"Bolt Park",slug:"bolt-park",t:"The one outside request in the page was its font, and the showcase promises none, so the rounded heading falls back to the fonts already on the device. A check that a rocket pack lifts its bot picked the bot Amy had just flung to the ceiling; it now picks the one nearest the ground.",pv:"preview=1",k:"toy",col:C.pool,date:"2026-09-25",d:"A park of floppy robots. Strap a rocket pack to a bot, flip the conveyor belt, switch the magnet on and off, and watch the rover drive off on its own.",stat:"8",sl:"Things to add",spec:["Browser toy", "Mouse or touch", "Rockets, magnet, belt"],acts:["Play with it"]},
+    {n:"Grainsmith",slug:"grainsmith",t:"The order you scan the grid is the physics: go the wrong way and one grain falls 160 cells in a single step. Randomness has to come from position, not a shared stream. And this kind of water cannot climb, because it has no pressure.",pv:"preview=1",k:"toy",col:C.marigold,date:"2026-09-18",d:"Forty thousand cells and eleven materials, one rule each. Sand piles at forty five degrees, oil floats on water, fire eats the wood. No goal, no score. Just drag.",stat:"11",sl:"Materials",spec:["Browser toy","Drag to pour","No goal, no score"],acts:["Play with it"]},
+    {n:"Slingshot",slug:"slingshot",t:"Velocity Verlet does not conserve energy; it holds it inside a tiny band forever, while the naive method climbs 52 percent out of the well. And letting a crash end the flight means no fudge factor is needed near a planet.",pv:"preview=slingshot",k:"game",col:C.tomato,date:"2026-09-14",d:"Nine levels of one problem: a probe, some planets, and a station to reach. One shot, no engine. The dotted line while you aim is exactly where you'll go.",stat:"9",sl:"Levels",spec:["Browser game","Drag or arrow keys","One shot per try"],acts:["Play it"]},
+    {n:"Ink Tank",slug:"ink-tank",t:"Stam's famous 20 solver passes are a look, not a solve, the grid is blind to checkerboard patterns, and the dye that seems to evaporate is really spiralling in. Predicted loss 15.165 percent; measured 15.164.",pv:"preview=1&preset=aurora&warm=120",k:"toy",col:C.pool,date:"2026-09-20",d:"A tank of fluid you drag your finger through. The colour rides on real fluid maths, solved again every frame, with a switch to see the parts you normally can't.",stat:"1",sl:"Solve every frame",spec:["Browser toy","Drag to stir","Four views"],acts:["Play with it"]},
+    {n:"Pluck",slug:"pluck",t:"The textbook plucked string cannot play in tune, because a delay holds a whole number of samples. A small extra filter supplies the missing fraction, and two of Amy's own assumptions, one about delay lines and one about that filter, turned out wrong once measured.",pv:"preview=1&note=50&frame=5&pick=0.125",k:"toy",col:C.grape,date:"2026-08-24",d:"A six string instrument where every note comes out of one short loop. Strum a chord and watch a burst of noise get rounded off into a clean note.",stat:"6",sl:"Strings",spec:["Browser instrument","Click, type or strum","Sound on"],acts:["Play it"]},
+    {n:"Gamut",slug:"gamut",t:"Asking the browser to check a colour hands your own question back, the published colour constants are rounded enough to set the error floor, and the most vivid corner of screen colour is magenta, not blue. Ten of fourteen predictions missed.",wide:1,pv:"preview=1&h=264&c=0.16",k:"tool",col:C.grass,date:"2026-09-03",d:"Pick a hue and get a twelve step colour ramp, a contrast score for every step, and CSS you can paste into a real page.",stat:"12",sl:"Steps per ramp",spec:["Browser tool","Colour palettes","Copies CSS"],acts:["Use it"]},
+    {n:"Lamplighter",slug:"lamplighter",t:"The jump formula every platformer tutorial prints falls short in a real game by exactly 1/N, where N is the frames to the top, enough to make a level impossible. The fix is a literal off by one. Overturning your own passing result needs as much proof as making it.",pv:"preview=2",k:"game",col:C.bubble,date:"2026-09-13",d:"A small, gentle platformer. Carry a flame through dark rooms and light the lanterns. No enemies, no lives, and falling just puts you back at the start.",stat:"5",sl:"Rooms",spec:["Browser game","Keyboard only","No enemies"],acts:["Play it"]},
+    {n:"Harmonics Lab",slug:"harmonics-lab",t:"Measured, not remembered: the browser quietly rescales your sound unless told not to, phase is nearly inaudible but wildly visible, and the overshoot at a sharp edge never shrinks, however many harmonics you add.",wide:1,pv:"preview=square",k:"lab",col:C.peri,date:"2026-08-23",d:"Sixteen sliders, one per harmonic, so dragging them writes a sound by hand. Load a sawtooth or a square and watch the shape build itself out of plain sine waves.",stat:"16",sl:"Harmonics",spec:["Sound lab", "Sound on", "Drag the bars"],acts:["Play it"]},
+    {n:"Wave Function Collapse",slug:"wave-function-collapse",t:"Propagation is the whole algorithm: once one square is decided, the news has to ripple out to every neighbour, and the table that tracks it is easy to get backwards in a way that still looks right. Plausible output is not proof.",pv:"preview=terrain&size=18&seed=thumb-island",k:"lab",col:C.grass,date:"2026-08-20",d:"Every square starts as every tile at once. Watch the solver settle one square at a time until pipes, circuits or islands appear. Click a square to place one yourself.",stat:"3",sl:"Tilesets",spec:["Algorithm lab", "Run or step it", "Click to place"],acts:["Try it"]},
+    {n:"BPE Forge",slug:"bpe-forge",t:"The odd G that shows up in front of words in token dumps is an offset, not a choice. Encoding picks the lowest ranked merge first, not the longest match, which is why a vocabulary alone is not a tokenizer.",wide:1,pv:"preview=1",k:"lab",col:C.marigold,date:"2026-08-21",d:"Teach a tiny tokenizer on text you paste, then use the thing you made. Click any token to see how it was glued together. It is nobody's real tokenizer.",stat:"1",sl:"Merge at a time",spec:["Word lab", "Paste your own text", "Toy tokenizer"],acts:["Try it"]},
+    {n:"Sift",slug:"sift",t:"A slow, simple method can grade a fast, clever one line by line, and every bug caught came from two unrelated methods disagreeing. The cleanup step Amy expected to matter moved nothing at all.",wide:1,pv:"preview=config",k:"tool",col:C.pool,date:"2026-08-29",d:"Paste two versions of anything and see exactly what changed, down to the word. It all happens on the page, so nothing private gets pasted into someone else's website.",stat:"2",sl:"Ways to view",spec:["Browser tool", "Compares text", "Nothing leaves the page"],acts:["Use it"]},
+    {n:"Sway",slug:"sway",t:"Wind built one particular way, from the sideways slope of a smooth field, can never pile anything up, and that exact property is the whole look. Wired one derivative differently, the same noise sucks the pollen into drains.",pv:"preview=1&preroll=420",k:"toy",col:C.grass,date:"2026-08-31",d:"A meadow at dusk you can stand in. Grass leans in the wind, petals come loose and drift, and a little breeze follows your hand. Tap to plant a flower.",stat:"4",sl:"Skies",spec:["Browser toy", "Tap to plant", "Made to look at"],acts:["Play with it"]},
+    {n:"Cron Almanac",slug:"cron-almanac",t:"The classic cron manual does not describe the classic cron code: follow the sentence and a schedule fires 212 times a year where the real answer is 26. And the only way to know a clock time does not exist is to convert it back.",wide:1,pv:"preview=1",k:"tool",col:C.peri,date:"2026-09-01",d:"Paste a cron schedule and see the whole year at once, read back in plain English. It finds the two days a year when the clock change makes the schedule lie.",stat:"12",sl:"Months at once",spec:["Browser tool", "Schedules", "Plain English"],acts:["Use it"]},
+    {n:"Petri",slug:"petri",t:"On a graphics card the state has to live in two images that swap every step, because a shader cannot read and write the same one. The worst bug passed every check and showed only on screen: the dish drew literal squares.",pv:"preview=Coral&grid=160&steps=3800&palette=Ink&seed=thumb",k:"toy",col:C.tomato,date:"2026-09-05",d:"A dish you paint into with a finger. Nothing is drawn: coral, fingerprints and dividing spots all grow out of one small rule, run on the graphics card.",stat:"8",sl:"Regimes",spec:["Browser toy", "Needs WebGL2", "Paint with a finger"],acts:["Play with it"]},
+    {n:"Swept",slug:"swept",t:"The two columns git prints are exactly the two sides of the safety question, so the answer needs no guesswork. One collision cannot be detected at all, so the tool says so instead of showing green.",wide:1,pv:"preview=1&scenario=c2",k:"tool",col:C.grass,date:"2026-09-10",d:"Two ways to save work in git, and in a shared folder one of them quietly takes someone else's changes too. Paste your status and it says which way is safe.",stat:"10",sl:"Worked examples",spec:["Browser tool", "For git", "Paste and check"],acts:["Use it"]},
+    {n:"Spring Bench",slug:"spring-bench",t:"One formula covers every kind of spring and removes the crash the textbook form hits at exactly critical damping. CSS linear() error falls as the square of its stop count, and smarter stop placement is worth about five times the accuracy.",pv:"preview=1",k:"tool",col:C.tangerine,date:"2026-09-12",d:"Tune a bouncy spring by feel and get CSS that moves exactly the same way. A race lane shows yours against the standard ease out.",stat:"6",sl:"Presets",spec:["Browser tool", "Motion design", "Copies CSS"],acts:["Use it"]},
+    {n:"Aeolian",slug:"aeolian",t:"Lessons carried over from earlier builds keep their rule but not their size: the tuning error that was tens of cents in Pluck is under 10 here, because these strings are longer.",pv:"preview=1",k:"toy",col:C.peri,date:"2026-09-15",d:"Nine strings in a dark room and a wind that plays them. Nothing is sequenced: you are hearing the wind bend a string until it plucks. Drag through them to play.",stat:"9",sl:"Strings",spec:["Browser instrument", "Sound on", "Click to start"],acts:["Play it"]},
+    {n:"Cloth",slug:"cloth",t:"The line everyone writes to start a Verlet particle puts the simulation permanently ahead of the truth, damping per step is secretly a frame rate dial, and a disturbance travels a whole rope one way but one stick per pass the other.",pv:"preview=ropes",k:"toy",col:C.tomato,date:"2026-09-19",d:"A curtain, a banner, a net, a bridge and a rack of ropes, all points and sticks. Pull one corner and watch the strain light up all the way back to the pins.",stat:"5",sl:"Hanging things",spec:["Browser toy", "Colours by strain", "Just for playing"],acts:["Play with it"]},
+    {n:"Mosaic",slug:"mosaic",t:"The famous squarified treemap is a greedy stopping rule, not a search, and it buys its square tiles by giving up reading order. Measured: the median tile goes from 88.34:1 to 1.10:1.",wide:1,pv:"preview=1",k:"lab",col:C.pool,date:"2026-09-23",d:"The same 108 files packed into one rectangle three ways, side by side, with every tile's shape measured underneath. Every tile is a real file from the folder Amy builds in, as it stood the day she made it.",stat:"3",sl:"Layouts",spec:["Algorithm lab","Treemaps","Every count computed"],acts:["Try it"]},
+    {n:"Governance plugin",k:"workshop",col:C.lav,date:"2026-09-06",d:"The guardrails we built for our own AI helper, packaged so anyone can install them: review gates, a council of reviewers, and a lock meant to stop two sessions editing one file. Family data never ships, only the machinery. A first version was built and sent back for fixes after review found holes in the lock.",stat:"In review",sl:"Not installable yet",spec:["In the workshop","For Claude Code","Mapped 2026-09-06"],acts:[],ghost:true}
+  ];
+  var shapes=items.map(function(_,i){return onePiece(101+i*7);});
+  var MONTH=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  function shortDate(iso){return MONTH[+iso.slice(5,7)-1]+" "+(+iso.slice(8));}
+  var rmq=window.matchMedia("(prefers-reduced-motion: reduce)"),reduce=rmq.matches;
+  try{rmq.addEventListener("change",function(e){reduce=e.matches;if(reduce)setSnap(true);});}catch(e){}
+
+  // Logo mark: an S for Saxton, eleven pieces that don't match, the top one flying off.
+  var SMASK=[[1,1,1],[1,0,0],[1,1,1],[0,0,1],[1,1,1]];
+  var MCOL=[C.tomato,C.tangerine,C.marigold,C.grass,C.pool,C.peri,C.grape,C.bubble],MPAT=["solid","dots","stripes","check","zig","waves","confetti"];
+  function mark(svg){
+    var S=26,cells=board(5,3,S,rng(19),{jitter:.13}),n=0;
+    svg.appendChild(el("path",{d:"M54 22 q8 -3 12 -11 M61 28 q8 -3 12 -11",fill:"none",stroke:"#6B4FD8","stroke-width":"2.4","stroke-linecap":"round",opacity:".9"}));
+    cells.forEach(function(cell,i){
+      var r=Math.floor(i/3),c=i%3;if(!SMASK[r][c])return;
+      var g=el("g",(r===0&&c===2)?{transform:"translate(10 -10) rotate(18 "+cell.cx+" "+cell.cy+")"}:{});
+      glossy(g,cell.d,MCOL[(n*3)%8],false,MPAT[(n*2)%7],5);n++;svg.appendChild(g);
+    });
+  }
+  // Letters sit a little crooked, like the pieces. Words stay whole so lines still wrap.
+  document.querySelectorAll(".crooked").forEach(function(w){
+    var text=w.textContent.trim(),amp=+(w.dataset.amp||2.2),rot=+(w.dataset.rot||7),rr=rng(3),k=0;
+    var vis=document.createElement("span");vis.setAttribute("aria-hidden","true");
+    text.split(" ").forEach(function(word,wi){
+      if(wi)vis.appendChild(document.createTextNode(" "));
+      var ws=document.createElement("span");ws.className="w";
+      word.split("").forEach(function(ch){var s=document.createElement("span");s.className="ch";s.textContent=ch;
+        s.style.transform="translateY("+((rr()*2-1)*amp).toFixed(1)+"px) rotate("+((rr()*2-1)*rot).toFixed(1)+"deg)";
+        s.style.animationDelay=(k++*25)+"ms";ws.appendChild(s);});
+      vis.appendChild(ws);
+    });
+    var sr=document.createElement("span");sr.className="sr";sr.textContent=text;
+    w.textContent="";w.appendChild(vis);w.appendChild(sr);
+  });
+  mark(document.getElementById("mark"));document.querySelectorAll(".mark2").forEach(mark);
+
+  // Each build ships next to this page as builds/<slug>/index.html, and draws a chrome free view of itself when asked for a preview.
+  function buildSrc(it,preview){return "/builds/"+it.slug+"/index.html"+(preview&&it.pv?"?"+it.pv:"");}
+  // Colour says what kind of piece it is; pattern is what tells two of a kind apart.
+  var kindCount={};items.forEach(function(it,i){it.i=i;it.col=KIND[it.k][1];it.pi=(kindCount[it.k]=(kindCount[it.k]||0)+1)-1;});
+  var view={f:"all",q:"",mode:"puzzle",sort:"pick"};
+  function matches(it){var q=view.q.trim().toLowerCase();return (view.f==="all"||it.k===view.f)&&(!q||(it.n+" "+it.d+" "+KIND[it.k][0]).toLowerCase().indexOf(q)>-1);}
+  var KORDER=["game","sim","toy","tool","lab","workshop"];
+  var SORTS={pick:function(a,b){return a.i-b.i;},
+    "new":function(a,b){return a.date<b.date?1:a.date>b.date?-1:a.i-b.i;},
+    old:function(a,b){return a.date<b.date?-1:a.date>b.date?1:a.i-b.i;},
+    az:function(a,b){return a.n.localeCompare(b.n);},
+    kind:function(a,b){return (KORDER.indexOf(a.k)-KORDER.indexOf(b.k))||a.i-b.i;}};
+  function shown(){return items.filter(matches).sort(SORTS[view.sort]);}
+  function sticker(it,cls){var s=el("svg",{viewBox:"-70 -70 340 340","aria-hidden":"true"});if(cls)s.setAttribute("class",cls);glossy(s,shapes[it.i],it.col,it.ghost,PAT[it.pi%PAT.length],20);return s;}
+
+  // Detail view: a live preview of the build, the facts beside it, Play on top.
+  var det=document.getElementById("detail"),play=document.getElementById("play"),pFrame=document.getElementById("pFrame"),scr=document.getElementById("dScreen");
+  var seq=items,cur=0,lastFocus=null;
+  // The detail view and Play each get a history entry, so a phone's Back gesture closes them instead of leaving the site.
+  function keyOf(it){return it.slug||it.n;}
+  function byKey(k){for(var i=0;i<items.length;i++)if(keyOf(items[i])===k)return items[i];return null;}
+  var quiet=false;
+  function pushView(v){if(quiet)return;try{history.pushState({sx:v,k:keyOf(seq[cur])},"");}catch(e){}}
+  function atView(v){try{return !!(history.state&&history.state.sx===v);}catch(e){return false;}}
+  function openItem(it){seq=matches(it)?shown():items;show(seq.indexOf(it));}
+  // Bring the page to the view a history entry names, without adding entries of its own.
+  function restore(s){quiet=true;try{
+    var it=s&&s.k?byKey(s.k):null;
+    if(!s||!it){if(!play.hidden)stopNow();if(!det.hidden)closeNow();return;}
+    if(!play.hidden&&s.sx!=="p")stopNow();
+    if(det.hidden||keyOf(seq[cur])!==s.k)openItem(it);
+    if(s.sx==="p"&&play.hidden&&it.slug)startPlay(it);
+  }finally{quiet=false;}}
+  function show(pos){
+    var N=seq.length;cur=(pos+N)%N;var it=seq[cur],K=KIND[it.k],prev=seq[(cur-1+N)%N],next=seq[(cur+1)%N],was=det.hidden;
+    if(was)lastFocus=lastFocus||document.activeElement;
+    document.getElementById("dFacts").innerHTML=it.spec.map(function(s){return"<li>"+s+"</li>";}).join("")+'<li class="date">Built '+it.date+"</li>";
+    scr.innerHTML="";scr.style.setProperty("--c",it.col);
+    if(it.slug){
+      var fr=document.createElement("div");fr.className="frame"+(it.wide?" wide":"");
+      var go=document.createElement("button");go.type="button";go.className="go";go.setAttribute("aria-label",it.acts[0]+": "+it.n);go.innerHTML="<span>"+it.acts[0]+"</span>";go.onclick=function(){startPlay(it);};
+      // A moving preview must be stoppable (WCAG 2.2.2), and it does not start at all when reduced motion is asked for.
+      var tog=document.createElement("button");tog.type="button";tog.className="pv-toggle";
+      var cap=document.createElement("p");cap.className="cap";
+      function still(){var f=fr.querySelector("iframe");if(f)fr.removeChild(f);var s=document.createElement("div");s.className="still";s.appendChild(sticker(it));var sp=document.createElement("p");sp.textContent="Preview paused";s.appendChild(sp);fr.insertBefore(s,go);tog.textContent="Show the live preview";cap.textContent="Paused. Show the live preview, press "+it.acts[0]+", or download it and keep it.";}
+      function live(){var s=fr.querySelector(".still");if(s)fr.removeChild(s);var f=document.createElement("iframe");f.src=buildSrc(it,true);f.title="Live preview of "+it.n;f.tabIndex=-1;f.setAttribute("aria-hidden","true");f.setAttribute("scrolling","no");fr.insertBefore(f,go);tog.textContent="Pause preview";cap.textContent="A preview, running right here. Pause it, tap it to play, or download it and keep it.";fitWide();}
+      tog.onclick=function(){if(fr.querySelector("iframe"))still();else live();};
+      fr.appendChild(go);fr.appendChild(tog);scr.appendChild(fr);scr.appendChild(sticker(it,"sticker"));scr.appendChild(cap);
+      if(reduce)still();else live();
+    }else{
+      var g=document.createElement("div");g.className="ghostart";g.appendChild(sticker(it));
+      var gp=document.createElement("p");gp.textContent="Nothing to play yet. It's mapped, not built.";g.appendChild(gp);scr.appendChild(g);
+    }
+    document.getElementById("dKind").textContent=K[0];document.getElementById("dName").textContent=it.n;document.getElementById("dText").textContent=it.d;document.getElementById("dLearn").hidden=!it.t;document.getElementById("dTaught").textContent=it.t||"";
+    var acts=document.getElementById("dActs");
+    acts.innerHTML=it.slug?'<button class="btn" type="button" id="dPlay">'+it.acts[0]+'</button>'
+      +'<a class="btn ghost" href="/builds/'+it.slug+'/index.html" download="'+it.slug+'.html">Download it</a>'
+      +'<a class="btn ghost" href="/builds/'+it.slug+'/LEARNED.md" download="'+it.slug+'-LEARNED.md">Notes for your AI</a>'
+      :'<span class="soon">Not playable yet</span>';
+    if(it.slug)document.getElementById("dPlay").onclick=function(){startPlay(it);};
+    var pb=document.getElementById("dPrev"),nb=document.getElementById("dNext");
+    pb.textContent="← "+prev.n;pb.setAttribute("aria-label","Previous piece: "+prev.n);
+    nb.textContent=next.n+" →";nb.setAttribute("aria-label","Next piece: "+next.n);
+    pb.hidden=nb.hidden=N<2;
+    if(was)pushView("d");det.hidden=false;document.querySelector(".wrap").inert=true;fitWide();document.body.style.overflow="hidden";if(was)document.getElementById("dClose").focus();
+  }
+  function fitWide(){var f=scr.querySelector(".frame.wide");if(f)f.style.setProperty("--s",f.clientWidth/1100);}
+  window.addEventListener("resize",fitWide);
+  function close(){if(atView("d"))history.back();else closeNow();}
+  function closeNow(){det.hidden=true;document.querySelector(".wrap").inert=false;scr.innerHTML="";document.body.style.overflow="";var lf=lastFocus;lastFocus=null;refocus(lf);}
+  // Going Back onto an entry with a #pieces hash makes the browser move focus to the board itself, so focus goes home again once that has happened.
+  function refocus(t){if(!t||!t.focus)return;t.focus({preventScroll:true});setTimeout(function(){if(document.activeElement!==t&&t.isConnected)t.focus({preventScroll:true});},0);}
+  // Play: the whole build, full screen, with a way back.
+  function startPlay(it){
+    document.getElementById("pName").textContent=it.n;
+    document.getElementById("pHint").textContent=it.spec.slice(1).join(". ")+".";
+    var ps=document.getElementById("pSticker");ps.innerHTML="";ps.appendChild(sticker(it));
+    scr.innerHTML="";
+    pFrame.title=it.n;pFrame.onload=function(){if(play.hidden)return;
+      // Focus goes into the game, so Escape has to be heard there too. Same origin on the site; the offline copy may refuse, and then Back still works.
+      try{pFrame.contentWindow.addEventListener("keydown",function(e){if(e.key==="Escape")stopPlay();});}catch(e){}
+      try{pFrame.contentWindow.focus();}catch(e){}pFrame.focus();};
+    det.inert=true;pushView("p");
+    // A fresh frame each time: its first load adds no history entry, so Back closes Play instead of stepping inside the game.
+    var nf=pFrame.cloneNode(false);nf.removeAttribute("src");nf.onload=pFrame.onload;nf.src=buildSrc(it,false);pFrame.replaceWith(nf);pFrame=nf;play.hidden=false;
+  }
+  function stopPlay(){if(atView("p"))history.back();else stopNow();}
+  function stopNow(){play.hidden=true;det.inert=false;var nf=pFrame.cloneNode(false);nf.removeAttribute("src");nf.onload=null;pFrame.replaceWith(nf);pFrame=nf;show(cur);refocus(document.getElementById("dPlay"));}
+  window.addEventListener("popstate",function(e){restore(e.state);});
+  document.getElementById("pBack").onclick=stopPlay;
+  document.getElementById("dClose").onclick=close;
+  document.getElementById("dPrev").onclick=function(){show(cur-1);};
+  document.getElementById("dNext").onclick=function(){show(cur+1);};
+  document.addEventListener("keydown",function(e){
+    if(!play.hidden){if(e.key==="Escape")stopPlay();return;}
+    if(det.hidden)return;if(e.key==="Escape")close();if(e.key==="ArrowRight")show(cur+1);if(e.key==="ArrowLeft")show(cur-1);
+  });
+
+  // Board: as many pieces as there are builds, plus the open slot. It lays itself out from the count.
+  var bd=document.getElementById("board"),snapBtn=document.getElementById("snap"),plist=document.getElementById("plist"),bempty=document.getElementById("bEmpty"),bstate=document.getElementById("boardState"),S=200,narrowNow=null,colsNow=null;
+  // Labels are sized in screen pixels (names at 15px, kinds at 12.5px, never smaller), then measured and nudged to fit the piece.
+  function label(g,words,x,y,fs,kfs,fg,halo,kind){
+    var lines=[];
+    words.forEach(function(L,j){var t=el("text",{x:x,"text-anchor":"middle",fill:fg,stroke:halo,"stroke-width":fs*.4,"paint-order":"stroke","stroke-linejoin":"round","font-family":"Unbounded, Arial Black, sans-serif","font-weight":"700","font-size":fs.toFixed(1)});t.textContent=L;g.appendChild(t);lines.push(t);});
+    var wide=Math.max.apply(null,lines.map(function(t){try{return t.getComputedTextLength();}catch(e){return 0;}}));
+    if(wide>184){var f=Math.max(fs*184/wide,fs*.86);lines.forEach(function(t){t.setAttribute("font-size",f.toFixed(1));t.setAttribute("stroke-width",(f*.4).toFixed(1));});fs=f;}
+    lines.forEach(function(t,j){t.setAttribute("y",(y+(j-(lines.length-1)/2)*fs*1.3).toFixed(1));});
+    var k=el("text",{x:x,y:(y+(lines.length-1)*fs*.65+fs*.6+kfs*1.2).toFixed(1),"text-anchor":"middle",fill:fg,stroke:halo,"stroke-width":kfs*.4,"paint-order":"stroke","stroke-linejoin":"round","font-family":"Atkinson Hyperlegible, sans-serif","font-weight":"700","font-size":kfs.toFixed(1)});k.textContent=kind;g.appendChild(k);
+  }
+  // Up to two columns narrower than fits: fewest empty cells, but on a wide screen each row taller than the board is wide costs two cells, so a big set never turns into a tower. Ties go wider.
+  function columnsFor(w,n){
+    var narrow=w<560,max=Math.max(2,Math.min(n,narrow?5:Math.min(6,Math.floor((w/.8-100)/S)))),best=max,bestCost=Infinity;
+    for(var c=max;c>=Math.max(2,max-2);c--){var r=Math.ceil(n/c),cost=r*c-n+(narrow?0:2*Math.max(0,r-c));if(cost<bestCost){best=c;bestCost=cost;}}
+    return best;
+  }
+  function drawBoard(){
+    var list=shown(),w=bd.getBoundingClientRect().width||bd.parentNode.clientWidth,narrow=w<560,n=list.length+1,rr=rng(7);narrowNow=narrow;
+    var Cn=columnsFor(w,n);colsNow=Cn;
+    var R=Math.ceil(n/Cn),cells=board(R,Cn,S,rng(42+R*10+Cn),{jitter:.1}),scale=w/(Cn*S+100),base=15/scale,kbase=12.5/scale;
+    bd.innerHTML="";bd.setAttribute("viewBox","-50 -50 "+(Cn*S+100)+" "+(R*S+100));
+    var nb=list.filter(function(x){return x.slug;}).length,nw=list.length-nb;
+    bd.setAttribute("aria-label",nb+" build"+(nb===1?"":"s")+(nw?" and "+nw+" piece still in the workshop":"")+", plus an empty slot for the next one");
+    // Names ride in a layer of their own above every piece, so a neighbour's tab never covers one; each layer scatters with its piece.
+    var tops=[];
+    cells.forEach(function(cell,i){
+      var d=cell.d,x=cell.cx,y=cell.cy,g,lg=el("g",{"class":"bp bpl","aria-hidden":"true","pointer-events":"none"});
+      if(i<list.length){
+        var it=list[i];g=el("g",{"class":"bp",tabindex:"0",role:"button","aria-label":"Open "+it.n+", "+KIND[it.k][0].toLowerCase()});bd.appendChild(g);
+        glossy(g,d,it.col,it.ghost,PAT[it.pi%PAT.length],20);
+        var fg=it.ghost?"#6B4FD8":labelInk(it.col),halo=it.ghost?"none":it.col;
+        // On a phone the board is a mosaic you can take in at once; the names live in List view and in each piece's detail.
+        if(!narrow){bd.appendChild(lg);label(lg,it.n.split(" "),x,y-8,base,kbase,fg,halo,KIND[it.k][0].toLowerCase());}
+        (function(item,gg){gg.addEventListener("click",function(){lastFocus=gg;openItem(item);});gg.addEventListener("keydown",function(ev){if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();lastFocus=gg;openItem(item);}});})(it,g);
+      }else if(i===list.length){
+        // The open slot is butter, like the idea box it leads to, so it never reads as the workshop piece.
+        g=el("g",{"class":"bp slot",tabindex:"0",role:"link","aria-label":"Your idea could be the next piece"});
+        g.appendChild(el("path",{d:d,"class":"shape",fill:"#FFE066",stroke:"#1A1540","stroke-width":"2.5","stroke-dasharray":"9 7"}));
+        if(!narrow){var t1=el("text",{x:x,y:(y-2).toFixed(1),"text-anchor":"middle",fill:"#1A1540","font-family":"Unbounded, Arial Black, sans-serif","font-weight":"700","font-size":base.toFixed(1)});t1.textContent="Your idea?";
+        var t2=el("text",{x:x,y:(y+base*1.3).toFixed(1),"text-anchor":"middle",fill:"#1A1540","font-family":"Atkinson Hyperlegible, sans-serif","font-weight":"700","font-size":kbase.toFixed(1)});t2.textContent="the next piece";
+        lg.appendChild(t1);lg.appendChild(t2);}
+        var goIdea=function(){location.hash="idea";var ta=document.getElementById("ideaText");if(ta)ta.focus({preventScroll:true});};g.addEventListener("click",goIdea);g.addEventListener("keydown",function(ev){if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();goIdea();}});
+      }else{
+        // An empty cell sits under the pieces and stays put, so its dashed edge never draws over a neighbour.
+        g=el("g",{"class":"hole","aria-hidden":"true"});
+        g.appendChild(el("path",{d:d,fill:"rgba(107,79,216,.03)",stroke:"rgba(107,79,216,.28)","stroke-width":"1.5","stroke-dasharray":"4 8"}));
+        bd.insertBefore(g,bd.firstChild);return;
+      }
+      g.style.setProperty("--dx",((rr()*2-1)*60).toFixed(0)+"px");g.style.setProperty("--dy",((rr()*2-1)*50).toFixed(0)+"px");g.style.setProperty("--rot",((rr()*2-1)*20).toFixed(0)+"deg");
+      bd.appendChild(g);
+      if(lg.firstChild){var bb=g.getBBox();["--dx","--dy","--rot"].forEach(function(k){lg.style.setProperty(k,g.style.getPropertyValue(k));});
+        lg.style.transformBox="view-box";lg.style.transformOrigin=(bb.x+bb.width/2).toFixed(1)+"px "+(bb.y+bb.height/2).toFixed(1)+"px";tops.push(lg);}
+    });
+    tops.forEach(function(t){bd.appendChild(t);});
+  }
+  function drawList(){
+    plist.innerHTML="";
+    shown().forEach(function(it){
+      var li=document.createElement("li"),b=document.createElement("button");b.type="button";b.style.setProperty("--c",it.col);
+      b.innerHTML='<span class="pc"></span><span class="nm"><b>'+it.n+'</b><span class="one">'+it.d+'</span></span><span class="k"><i></i>'+KIND[it.k][0]+'</span><span class="date">'+shortDate(it.date)+'</span>';
+      b.querySelector(".pc").appendChild(sticker(it));b.onclick=function(){lastFocus=b;openItem(it);};li.appendChild(b);plist.appendChild(li);
+    });
+  }
+  function setSnap(on){bd.classList.toggle("scattered",!on);snapBtn.textContent=on?"Scatter them":"Snap them back";}
+  snapBtn.onclick=function(){setSnap(bd.classList.contains("scattered"));};
+  // The pieces that match fly in and snap together; everything else leaves the board.
+  function flyIn(delay){if(reduce){setSnap(true);return;}setSnap(false);bd.getBoundingClientRect();setTimeout(function(){setSnap(true);},delay);}
+  function refresh(fly){
+    var list=shown(),n=list.length,puzzle=view.mode==="puzzle",narrowed=view.f!=="all"||view.q.trim();
+    document.querySelectorAll("[data-f]").forEach(function(x){if(x.classList.contains("chip"))x.setAttribute("aria-pressed",x.dataset.f===view.f?"true":"false");});
+    document.querySelectorAll("[data-view]").forEach(function(x){x.setAttribute("aria-pressed",x.dataset.view===view.mode?"true":"false");});
+    bd.style.display=puzzle&&n?"":"none";plist.hidden=puzzle||!n;snapBtn.hidden=!puzzle||!n;bempty.hidden=!!n;
+    if(puzzle&&n){drawBoard();if(fly)flyIn(60);}
+    if(!puzzle)drawList();
+    var q=view.q.trim().toLowerCase();
+    document.querySelectorAll(".chip[data-f] span").forEach(function(sp){var f=sp.parentNode.dataset.f;sp.textContent=items.filter(function(it){return (f==="all"||it.k===f)&&(!q||(it.n+" "+it.d+" "+KIND[it.k][0]).toLowerCase().indexOf(q)>-1);}).length;sp.parentNode.setAttribute("aria-label",sp.parentNode.dataset.name+", "+sp.textContent);});
+    var sb=list.filter(function(x){return x.slug;}).length,sw=n-sb;
+    bstate.textContent=n?(sb+" build"+(sb===1?"":"s")+(sw?", "+sw+" in the workshop":"")+(narrowed?" showing":"")+(puzzle?(narrowNow?". Tap a piece to open it, or choose List to see the names.":". Tap one to open it."):".")):"No pieces match.";
+  }
+  function setFilter(f){view.f=f;refresh(true);}
+  function jumpTo(f){view.q="";if(find)find.value="";setFilter(f);}
+  // Chip counts, and a chip with nothing behind it goes away.
+  document.querySelectorAll(".chip[data-f]").forEach(function(b){
+    var c=b.dataset.f==="all"?items.length:items.filter(function(it){return it.k===b.dataset.f;}).length;
+    b.dataset.name=b.textContent.trim();var s=document.createElement("span");s.textContent=c;b.appendChild(s);if(!c)b.hidden=true;
+    if(KIND[b.dataset.f]){var sw=document.createElement("i");sw.style.background=KIND[b.dataset.f][1];sw.setAttribute("aria-hidden","true");b.insertBefore(sw,b.firstChild);}
+    b.onclick=function(){setFilter(b.dataset.f);};
+  });
+  document.querySelectorAll("[data-jump]").forEach(function(a){a.addEventListener("click",function(){jumpTo(a.dataset.jump);});});
+  document.querySelectorAll("[data-view]").forEach(function(b){b.onclick=function(){view.mode=b.dataset.view;refresh(true);};});
+  // Search only shows up once the library is big enough to need it.
+  var find=document.getElementById("find");
+  if(items.length>12){find.parentNode.hidden=false;find.addEventListener("input",function(){view.q=find.value;refresh(false);});}
+  document.getElementById("sort").addEventListener("change",function(e){view.sort=e.target.value;refresh(true);});
+  // Opened from the unzipped download there is no zip and no About page beside this one, so those links go away.
+  if(location.protocol==="file:")document.querySelectorAll(".getAll,.onsite").forEach(function(a){a.hidden=true;});
+  document.getElementById("bClear").onclick=function(){view.f="all";view.q="";find.value="";refresh(true);};
+  window.addEventListener("resize",function(){if(view.mode!=="puzzle")return;var w=bd.getBoundingClientRect().width;if((w<560)!==narrowNow||columnsFor(w,shown().length+1)!==colsNow)drawBoard();});
+  // Labels are measured, so measure again once the real fonts arrive.
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){if(view.mode==="puzzle"&&!bd.hidden)drawBoard();});
+  // Play something: any playable piece, opened where it can be played.
+  // With the whole shelf showing, it picks a game, life sim or toy, so a kid never lands on a git tool.
+  function anyPiece(){var pool=shown().filter(function(x){return x.slug&&(view.f!=="all"||view.q.trim()||/^(game|sim|toy)$/.test(x.k));});if(!pool.length)pool=items.filter(function(x){return x.slug;});return pool[Math.floor(Math.random()*pool.length)];}
+  document.querySelectorAll(".playSome").forEach(function(a){a.addEventListener("click",function(e){e.preventDefault();lastFocus=a;openItem(anyPiece());});});
+
+  refresh(false);
+  try{if(history.state&&history.state.k)restore(history.state);}catch(e){}
+  // /#play (the About page's "Play something") opens a random piece, then drops the hash so Back and reload behave.
+  if(location.hash==="#play"&&det.hidden){try{history.replaceState(null,"",location.pathname+location.search);}catch(e){}lastFocus=document.getElementById("heroPlay");openItem(anyPiece());}
+  if(reduce)setSnap(true);else setTimeout(function(){setSnap(true);},700);
+
+
+  // The idea box. It posts to the site's own /api/ideas, which the site host runs.
+  // It never claims a send it cannot see: anything but a 2xx reply says it did not send.
+  var iform=document.getElementById("ideaForm"),imsg=document.getElementById("ideaMsg"),isend=document.getElementById("ideaSend");
+  iform.addEventListener("submit",function(e){
+    e.preventDefault();
+    var idea=iform.idea.value.trim(),email=iform.email.value.trim();
+    if(!idea){imsg.textContent="Tell us the idea first.";iform.idea.focus();return;}
+    if(idea.length<5){imsg.textContent="A few more words, please, so we know what you mean.";iform.idea.focus();return;}
+    if(email&&!iform.email.checkValidity()){imsg.textContent="That email does not look right. Fix it, or leave it out.";iform.email.focus();return;}
+    if(location.protocol==="file:"){imsg.textContent="This is the offline copy, so it cannot send. Visit saxtonshowcase.com to send an idea.";return;}
+    isend.disabled=true;iform.idea.readOnly=iform.email.readOnly=true;imsg.textContent="Sending...";
+    var ctl=window.AbortController?new AbortController():null,settled=false;
+    function say(m,sent){if(settled&&!sent)return;var late=settled;settled=true;clearTimeout(timer);
+      // A success that arrives after the timeout must not wipe a new draft typed since.
+      if(sent&&late&&iform.idea.value.trim()!==idea){imsg.textContent="Your earlier idea did arrive after all. The text in the box now has not been sent.";return;}
+      imsg.textContent=m;if(sent)iform.reset();iform.idea.readOnly=iform.email.readOnly=false;isend.disabled=false;}
+    var UNKNOWN="No answer from the idea box, so we cannot tell whether your idea arrived. Keep a copy and try again later.";
+    var timer=setTimeout(function(){if(ctl)ctl.abort();say(UNKNOWN);},15000);
+    fetch("/api/ideas",{method:"POST",headers:{"Content-Type":"application/json"},signal:ctl?ctl.signal:undefined,body:JSON.stringify({idea:idea,email:email,website:iform.website.value,page:"saxton-showcase"})})
+      .then(function(r){
+        if(r.status===429){say("Lots of ideas from here just now, so this one was not sent. Keep a copy and try again in a few minutes.");return;}
+        if(!r.ok){say("That did not go through, so it may not have been saved. Keep a copy and try again later.");return;}
+        return r.json().then(function(j){
+          if(j&&j.ok===true)say("Thanks, it is in.",true);
+          else say("The idea box answered, but did not confirm it kept your idea. Keep a copy and try again later.");
+        },function(){say("The idea box answered, but did not confirm it kept your idea. Keep a copy and try again later.");});
+      })
+      .catch(function(){say(UNKNOWN);});
+  });
+
+  // The empty slot, drawn in ink on butter.
+  var cs=document.getElementById("ctaSlot");
+  cs.appendChild(el("path",{d:onePiece(77),fill:"none",stroke:"#1A1540","stroke-width":"6","stroke-dasharray":"16 12","stroke-linejoin":"round",transform:"rotate(-8 100 100)"}));
+})();
+</script>

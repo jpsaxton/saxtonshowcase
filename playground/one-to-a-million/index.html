@@ -1,0 +1,2149 @@
+<!doctype html>
+<html lang="en">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta charset="utf-8">
+<title>One to a Million</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Grass and a hairball at 1, 100, 10,000 and 1,000,000 strands. Every strand bends at two springy joints, strands crowd each other, and a glowing ring on a motor plows through them while they push it back, all solved on the graphics chip 120 times a second.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one screen. The simulation fills it; the type sits on smoked glass in the corners. */
+:root {
+  --night: #0d0b1c;
+  --dusk: #2b1d4c;
+  --ember: #e58f6b;
+  --paper: #f5f0e7;
+  --mute: #bdb4cf;
+  --ring: #8ff3ff;
+  --lime: #cff26d;
+  --rose: #ff94c6;
+  --glass: rgba(16, 13, 34, 0.58);
+  --line: rgba(245, 240, 231, 0.16);
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body { margin: 0; background: var(--night); color: var(--paper); font-family: var(--display); overflow: hidden; }
+#sky, #skyHair { position: fixed; inset: 0; }
+#sky { background: linear-gradient(180deg, #120d2a 0%, #2b1d4c 40%, #6b4567 68%, #d98a6c 100%); }
+/* The hair sky fades in over the grass sky instead of swapping all at once. */
+#skyHair { background: radial-gradient(120% 90% at 50% 45%, #2a1d4a 0%, #140f2b 55%, #07060f 100%); opacity: 0; transition: opacity 0.35s ease; }
+body.hair #skyHair { opacity: 1; }
+canvas#gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
+.ui {
+  position: fixed; inset: 0; pointer-events: none;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 12px;
+  padding-block: max(14px, env(safe-area-inset-top, 0px)) max(14px, env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.top, .bottom { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+.bottom { align-items: flex-end; }
+.title { max-width: 30rem; min-width: 0; }
+h1 { margin: 0; font-weight: 800; font-size: clamp(1.5rem, 3.4vw, 2.4rem); letter-spacing: -0.02em; line-height: 1; text-wrap: balance; }
+h1 em { font-style: normal; color: var(--ring); }
+.sub { margin: 0.45rem 0 0; color: var(--mute); font-size: 0.92rem; line-height: 1.4; max-width: 34ch; }
+.seg { pointer-events: auto; display: inline-flex; background: var(--glass); border: 1px solid var(--line); border-radius: 999px; padding: 3px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.seg button {
+  font: 600 0.9rem/1 var(--display); color: var(--mute); background: transparent; border: 0; border-radius: 999px;
+  padding: 0.55rem 0.95rem; cursor: pointer; min-height: 36px;
+}
+.seg button[aria-pressed="true"] { background: var(--paper); color: var(--night); }
+.seg button:focus-visible, .chip:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.readout { min-width: 0; }
+.count { font-weight: 800; font-size: clamp(3rem, 11vw, 7.5rem); line-height: 0.86; letter-spacing: -0.045em; font-variant-numeric: tabular-nums; text-shadow: 0 2px 30px rgba(0,0,0,0.35); }
+.unit { font: 600 clamp(1rem, 2.2vw, 1.35rem)/1.1 var(--display); color: var(--lime); margin-top: 0.25rem; }
+body.hair .unit { color: var(--rose); }
+.caption { margin: 0.5rem 0 0; color: var(--paper); opacity: 0.86; font-size: 0.95rem; line-height: 1.4; max-width: 38ch; }
+.panel { pointer-events: auto; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; min-width: 0; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.chip {
+  font: 500 0.82rem/1 var(--mono); color: var(--paper); background: var(--glass); border: 1px solid var(--line);
+  border-radius: 999px; padding: 0.55rem 0.85rem; cursor: pointer; min-height: 36px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.chip[aria-pressed="true"] { border-color: var(--ring); color: var(--ring); }
+.chip.big { font: 700 0.95rem/1 var(--display); padding: 0.6rem 1rem; }
+.stats { font: 400 0.75rem/1.4 var(--mono); color: var(--mute); text-align: right; font-variant-numeric: tabular-nums; }
+.hint { font: 400 0.75rem/1.4 var(--mono); color: var(--mute); text-align: right; max-width: 46ch; }
+.hint kbd { font: 500 0.72rem/1 var(--mono); color: var(--paper); border: 1px solid var(--line); border-radius: 4px; padding: 0 0.3em; }
+.pluck { font: 500 0.8rem/1.45 var(--mono); color: var(--lime); text-align: right; max-width: 46ch; }
+body.hair .pluck { color: var(--rose); }
+.pluck[hidden] { display: none; }
+.how {
+  position: fixed; pointer-events: auto; z-index: 2;
+  top: max(70px, calc(env(safe-area-inset-top, 0px) + 60px)); right: max(16px, env(safe-area-inset-right, 0px));
+  width: min(26rem, calc(100vw - 32px)); max-height: calc(100vh - 150px); overflow: auto;
+  background: rgba(16, 13, 34, 0.86); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  font-size: 0.88rem; line-height: 1.5; color: var(--paper);
+}
+.how[hidden] { display: none; }
+.how h2 { margin: 0 0 0.4rem; font-size: 1.15rem; font-weight: 800; }
+.how h3 { margin: 0.9rem 0 0.25rem; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mute); }
+.how p { margin: 0.3rem 0; }
+.how dl { display: grid; grid-template-columns: auto 1fr; gap: 0.2rem 0.8rem; margin: 0.3rem 0; font-family: var(--mono); font-size: 0.8rem; }
+.how dt { color: var(--mute); }
+.how dd { margin: 0; }
+.how ul { margin: 0.3rem 0; padding-left: 1.1rem; }
+.how .close { position: absolute; top: 10px; right: 10px; }
+#fail { position: fixed; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; background: var(--night); }
+#fail[hidden] { display: none; }
+#fail p { max-width: 36ch; color: var(--mute); line-height: 1.5; }
+@media (max-width: 640px) {
+  .bottom { flex-direction: column; align-items: stretch; flex-wrap: nowrap; }
+  .panel { align-items: stretch; }
+  .row { justify-content: flex-start; }
+  .stats, .hint, .pluck { text-align: left; }
+  .sub { display: none; }
+  .hint { display: none; }
+  /* On a phone each chip row is one line you swipe sideways, so the controls keep to the bottom. */
+  .panel .row { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+  .panel .row::-webkit-scrollbar { display: none; }
+  .panel .chip { flex: none; }
+  .count { font-size: clamp(2.6rem, 14vw, 4rem); }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div id="sky" aria-hidden="true"></div>
+<div id="skyHair" aria-hidden="true"></div>
+<canvas id="gl" tabindex="0" aria-label="Physics simulation. Drag to look around, scroll or pinch to zoom."></canvas>
+
+<div class="ui">
+  <div class="top">
+    <div class="title">
+      <h1>One to <em>a Million</em></h1>
+      <p class="sub">Every strand bends at two springy joints. Wind or gravity pulls it, the ring's push field shoves it, strands crowd each other and push the ring back, and your graphics chip solves all of it 120 times a second.</p>
+    </div>
+    <div class="row">
+      <div class="seg" role="group" aria-label="Scene">
+        <button id="sceneGrass" aria-pressed="true">Grass</button>
+        <button id="sceneHair" aria-pressed="false">Hairball</button>
+      </div>
+      <a class="chip big" href="satisfying.html" style="pointer-events:auto;text-decoration:none;display:inline-flex;align-items:center">Satisfying Lab</a>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <div class="readout" aria-live="polite">
+      <div class="count" id="count">1</div>
+      <div class="unit" id="unit">blade of grass</div>
+      <p class="caption" id="caption">One blade. A spring at its root pulls the tip back up.</p>
+    </div>
+    <div class="panel">
+      <div class="seg" role="group" aria-label="How many strands">
+        <button data-step="0" aria-pressed="true">1</button>
+        <button data-step="1" aria-pressed="false">100</button>
+        <button data-step="2" aria-pressed="false">10K</button>
+        <button data-step="3" aria-pressed="false">1M</button>
+      </div>
+      <div class="row" role="group" aria-label="Time">
+        <button class="chip" id="pauseBtn" aria-pressed="false">Pause</button>
+        <button class="chip" id="stepBtn">Step</button>
+        <button class="chip" id="speedBtn">Speed 1x</button>
+        <button class="chip" id="replayBtn">Replay</button>
+        <button class="chip big" id="pluckBtn">Pluck one</button>
+      </div>
+      <div class="row">
+        <button class="chip big" id="tour" aria-pressed="false">Play the tour</button>
+        <button class="chip" id="ringBtn" aria-pressed="true">Ring</button>
+        <button class="chip" id="forceBtn" aria-pressed="true">Wind</button>
+        <button class="chip" id="dragBtn" aria-pressed="false">Drag: look</button>
+        <button class="chip" id="spinBtn" aria-pressed="false">Camera spin</button>
+        <button class="chip" id="viewBtn">Reset view</button>
+        <button class="chip" id="howBtn" aria-pressed="false" aria-controls="how">How it works</button>
+      </div>
+      <div class="pluck" id="pluckOut" aria-live="polite" hidden></div>
+      <div class="stats" id="stats">starting</div>
+      <div class="hint" id="hint">Drag to look, scroll or pinch to zoom. Keys: <kbd>1</kbd>-<kbd>4</kbd> count, <kbd>G</kbd> grass, <kbd>H</kbd> hair, <kbd>Space</kbd> pause, <kbd>.</kbd> step, <kbd>S</kbd> speed, <kbd>R</kbd> replay, <kbd>K</kbd> pluck, <kbd>O</kbd> ring, <kbd>W</kbd> wind or gravity, <kbd>P</kbd> push, <kbd>C</kbd> spin, <kbd>V</kbd> reset view, <kbd>T</kbd> tour, <kbd>I</kbd> how it works.</div>
+    </div>
+  </div>
+</div>
+
+<aside class="how" id="how" hidden aria-label="How it works">
+  <button class="chip close" id="howClose" aria-label="Close how it works">Close</button>
+  <div id="howBody"></div>
+</aside>
+
+<div id="fail" hidden>
+  <div>
+    <h1>This one needs a newer browser</h1>
+    <p id="failWhy">It runs a million springs on the graphics chip, which needs WebGL 2 with floating point render targets. Try it in Safari, Chrome or Edge on a recent Mac, iPad or iPhone.</p>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
+/* ---------------------------------------------------------------- setup */
+const $ = (id) => document.getElementById(id);
+
+function fail(why) {
+  $('fail').hidden = false;
+  if (why) $('failWhy').textContent = why;
+  throw new Error(why || 'unsupported');
+}
+
+const canvas = $('gl');
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+} catch (e) { fail(); }
+if (!renderer.capabilities.isWebGL2) fail();
+const gl = renderer.getContext();
+const floatOK = !!gl.getExtension('EXT_color_buffer_float');
+const halfOK = floatOK || !!gl.getExtension('EXT_color_buffer_half_float');
+if (!halfOK) fail();
+const SIM_TYPE = floatOK ? THREE.FloatType : THREE.HalfFloatType;
+renderer.setClearColor(0x000000, 0);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(42, 1, 0.01, 500);
+
+/* ---------------------------------------------------------------- shaders */
+const HEADER = `precision highp float;\nprecision highp int;\nprecision highp sampler2D;\n`;
+
+const RING_GLSL = `
+// The ring's path. tau is where it is along its path; its own speed lives on the graphics chip
+// (uRingTex: tau, tau speed, distance rolled, spin) because the strands push back on it.
+uniform sampler2D uRingTex;
+uniform float uRingR, uRingY, uAmp;
+void ringPose(float tau, out vec3 C, out vec3 A) {
+  if (uMode < 0.5) {
+    C = vec3(uAmp * sin(0.45 * tau), uRingY, uAmp * 0.35 * sin(0.9 * tau));
+    vec2 v = vec2(uAmp * 0.45 * cos(0.45 * tau), uAmp * 0.35 * 0.9 * cos(0.9 * tau));
+    float sp = max(length(v), 1e-6);
+    A = vec3(-v.y / sp, 0.0, v.x / sp);
+  } else {
+    C = vec3(0.0);
+    A = normalize(vec3(sin(tau * 0.6), 0.55 * cos(tau * 0.37), cos(tau * 0.6)));
+  }
+}
+vec4 ringState() { return texelFetch(uRingTex, ivec2(0, 0), 0); }
+
+`;
+
+// The wind. Above the grass it comes in gusts (a moving pattern, 1.3 times the breeze's speed);
+// in the grass it is a layer of real air on a grid (uAirTex), solved on the chip.
+// Needs uWindDir and uTime declared by the shader that includes it.
+const AIR_GLSL = `
+uniform sampler2D uAirTex;
+uniform vec2 uAirMin;
+uniform float uAirSize, uAirN, uWindU0, uAirOn;
+vec2 windAbove(vec2 xz, float t) {
+  float ph = 0.45 * (dot(xz, uWindDir) - 1.3 * uWindU0 * t);
+  float gust = 0.5 + 0.5 * sin(ph) * sin(ph * 0.31 + 1.3 + xz.y * 0.13);
+  return uWindDir * uWindU0 * (0.6 + 0.8 * gust);
+}
+vec2 airAt(vec2 xz) {
+  vec2 uv = clamp((xz - uAirMin) / uAirSize, vec2(0.5 / uAirN), vec2(1.0 - 0.5 / uAirN));
+  return texture(uAirTex, uv).xy;
+}
+`;
+
+// Where each strand grows, from its index alone (no per strand buffers needed).
+const COMMON = `
+uniform float uMode;      // 0 grass, 1 hair
+uniform float uCount;
+uniform float uFieldHalf;
+uniform float uLen;
+uniform float uBallR;
+
+uint hashu(uint x) {
+  x ^= x >> 16; x *= 0x7feb352du; x ^= x >> 15; x *= 0x846ca68bu; x ^= x >> 16; return x;
+}
+float h1(float i, uint salt) { return float(hashu(uint(i) * 2654435761u + salt * 374761393u)) / 4294967295.0; }
+
+struct Root { vec3 P; vec3 N; vec3 T1; vec3 T2; vec3 W; float L; float r; };
+
+Root rootOf(float i) {
+  Root o;
+  float a = h1(i, 1u), b = h1(i, 2u), c = h1(i, 3u), d = h1(i, 4u);
+  o.r = d;
+  if (uMode < 0.5) {
+    float g = ceil(sqrt(uCount));
+    vec2 cell = vec2(mod(i, g), floor(i / g));
+    vec2 sq = ((cell + vec2(a, b)) / g) * 2.0 - 1.0;
+    float rr, ang;
+    if (abs(sq.x) > abs(sq.y)) { rr = sq.x; ang = 0.7853982 * (sq.y / sq.x); }
+    else if (abs(sq.y) > 1e-6) { rr = sq.y; ang = 1.5707963 - 0.7853982 * (sq.x / sq.y); }
+    else { rr = 0.0; ang = 0.0; }
+    vec2 xz = rr * vec2(cos(ang), sin(ang)) * uFieldHalf;
+    if (uCount < 1.5) xz = vec2(0.0);
+    o.P = vec3(xz.x, 0.0, xz.y);
+    vec2 lean = (vec2(h1(i, 5u), h1(i, 6u)) - 0.5) * 0.3;
+    o.N = normalize(vec3(lean.x, 1.0, lean.y));
+    o.T1 = vec3(1.0, 0.0, 0.0);
+    o.T2 = vec3(0.0, 0.0, 1.0);
+    float yaw = c * 6.2831853;
+    o.W = vec3(cos(yaw), 0.0, sin(yaw));
+    o.L = uLen * (0.65 + 0.7 * d);
+  } else {
+    float y = 1.0 - 2.0 * (i + 0.5) / uCount;
+    float rr = sqrt(max(0.0, 1.0 - y * y));
+    // Golden angle spiral. The turn is worked out in exact 32 bit integers, so hair number
+    // 900,000 sits where the page's own JavaScript copy of this function says it does.
+    float phi = float(uint(i) * 1640531527u) * (6.2831853 / 4294967296.0);
+    vec3 n = vec3(cos(phi) * rr, y, sin(phi) * rr);
+    if (uCount < 1.5) n = normalize(vec3(0.55, 0.7, 0.45));
+    o.N = n;
+    o.P = n * uBallR;
+    vec3 up = abs(n.y) < 0.95 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
+    o.T1 = normalize(cross(up, n));
+    o.T2 = cross(n, o.T1);
+    o.W = o.T1;
+    o.L = uLen * (0.8 + 0.4 * d);
+  }
+  return o;
+}
+
+` + RING_GLSL + `
+vec3 ringCore(vec3 p, vec3 C, vec3 A, float R) {
+  vec3 q = p - C;
+  vec3 qp = q - dot(q, A) * A;
+  float lq = length(qp);
+  vec3 dirp = lq > 1e-5 ? qp / lq : normalize(cross(A, vec3(0.3, 0.9, 0.1)));
+  return C + dirp * R;
+}
+`;
+
+const SIM_VS = HEADER + `
+in vec3 position;
+void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }
+`;
+
+// Two texels per strand. A: lower segment lean (xy) and its speed (zw). B: upper segment lean
+// and its speed. A third output is this strand's push back on the ring, summed later on the chip.
+// The model, per unit mass: half the strand's mass at its middle, half at its tip, on two stiff
+// segments of length l = L / 2, with the same spring kj at the root and at the middle joint.
+//   mass matrix M = 0.5 l^2 [[2, 1], [1, 1]],  stiffness K = kj [[2, -1], [-1, 1]]
+//   M theta'' = Q - K theta - (alpha M + beta K) theta'
+// First mode: omega1^2 = (3 - sqrt 8) 2 kj / l^2 = 0.343 kj / l^2, mode shape upper = 1.414 x lower.
+// Second mode: 5.83 times faster. alpha and beta give damping ratios 0.20 and 0.30.
+const SIM_FS = HEADER + COMMON + `
+uniform sampler2D uStateA, uStateB, uPress;
+uniform float uTexSize, uTime, uDt;
+uniform float uRingInf, uRingOn, uRingStr, uCouple, uMassStrand;
+uniform vec3 uHandP;
+uniform float uHandR, uHandOn;
+uniform float uKj, uWind, uGrav, uForceOn, uDragK;
+uniform vec2 uWindDir;
+` + AIR_GLSL + `
+uniform float uPluckIdx, uPluckOn;
+uniform vec4 uPluckTheta;
+uniform float uContactOn, uContactK;
+uniform vec3 uGridMin, uGridCell, uGridN;
+uniform vec2 uAtlas;
+uniform float uTilesX;
+layout(location = 0) out vec4 outA;
+layout(location = 1) out vec4 outB;
+layout(location = 2) out vec4 outQ;
+
+vec3 push(vec3 p, vec3 k, float inf) {
+  vec3 d = p - k;
+  float dist = length(d);
+  float f = clamp(1.0 - dist / inf, 0.0, 1.0);
+  return (dist > 1e-5 ? d / dist : vec3(0.0, 1.0, 0.0)) * f * f;
+}
+
+// The crowding grid: a 3D grid stored as slices side by side in one texture. Each texel holds
+// the slope of the crowding (xyz, per cell) and the crowding itself (w).
+vec4 gridSlice(float gx, float gz, float iy) {
+  float tx = mod(iy, uTilesX), ty = floor(iy / uTilesX);
+  vec2 uv = vec2(tx * uGridN.x + clamp(gx, 0.0, uGridN.x - 1.0) + 0.5, ty * uGridN.z + clamp(gz, 0.0, uGridN.z - 1.0) + 0.5) / uAtlas;
+  return texture(uPress, uv);
+}
+vec3 crowdPush(vec3 p) {
+  vec3 g = (p - uGridMin) / uGridCell - 0.5;
+  if (g.x < -0.5 || g.z < -0.5 || g.y < -0.5 || g.x > uGridN.x - 0.5 || g.z > uGridN.z - 0.5 || g.y > uGridN.y - 0.5) return vec3(0.0);
+  float y0 = clamp(floor(g.y), 0.0, uGridN.y - 1.0), y1 = min(y0 + 1.0, uGridN.y - 1.0), fy = clamp(g.y - y0, 0.0, 1.0);
+  vec4 v = mix(gridSlice(g.x, g.z, y0), gridSlice(g.x, g.z, y1), fy);
+  return -v.xyz; // down the slope, away from the crowd
+}
+
+void main() {
+  ivec2 px = ivec2(gl_FragCoord.xy);
+  float i = float(px.y) * uTexSize + float(px.x);
+  if (i >= uCount) { outA = vec4(0.0); outB = vec4(0.0); outQ = vec4(0.0); return; }
+  vec4 sa = texelFetch(uStateA, px, 0), sb = texelFetch(uStateB, px, 0);
+  vec2 th1 = sa.xy, w1 = sa.zw, th2 = sb.xy, w2 = sb.zw;
+  Root r = rootOf(i);
+  float l = 0.5 * r.L;
+  vec3 d1 = normalize(r.N + r.T1 * th1.x + r.T2 * th1.y);
+  vec3 d2 = normalize(r.N + r.T1 * th2.x + r.T2 * th2.y);
+  vec3 pm = r.P + d1 * l, pt = pm + d2 * l;
+
+  // outside pushes, as accelerations (m/s2) at the middle and at the tip
+  vec3 fm = vec3(0.0), ft = vec3(0.0);
+  vec2 airF = vec2(0.0);
+  if (uMode < 0.5 && uAirOn > 0.5) {
+    // Drag from the air moving past the blade: per unit mass, kd |u_rel| u_rel, with
+    // kd = rho Cd width (L/2) / (m/2) / 2 = uDragK * L. The middle feels the air in the grass;
+    // the tip reaches halfway into the faster air above.
+    vec2 um = airAt(pm.xz), ut = airAt(pt.xz);
+    vec2 above = uForceOn > 0.5 ? windAbove(pt.xz, uTime) : vec2(0.0);
+    ut = mix(ut, above, 0.5);
+    // sideways speed of a segment's end: its offset is l theta / sqrt(1 + theta^2), so the speed is l theta' / (1 + theta^2)^1.5
+    vec3 vmid = l * (r.T1 * w1.x + r.T2 * w1.y) * pow(1.0 + dot(th1, th1), -1.5);
+    vec3 vtip = vmid + l * (r.T1 * w2.x + r.T2 * w2.y) * pow(1.0 + dot(th2, th2), -1.5);
+    vec3 relm = vec3(um.x, 0.0, um.y) - vmid, relt = vec3(ut.x, 0.0, ut.y) - vtip;
+    float kd = uDragK * r.L;
+    vec3 dgm = kd * length(relm) * relm, dgt = kd * length(relt) * relt;
+    fm += dgm; ft += dgt;
+    airF = 0.5 * uMassStrand * (dgm.xz + dgt.xz); // newtons the air puts on this blade; the air gets the opposite
+  } else if (uForceOn > 0.5) {
+    if (uMode < 0.5) {
+      float ph = dot(r.P.xz, uWindDir) * 0.45 - uTime * 1.7;
+      float gust = 0.5 + 0.5 * sin(ph) * sin(ph * 0.31 + 1.3 + r.P.z * 0.13);
+      float flutter = sin(uTime * 7.0 + r.r * 43.0) * 0.18;
+      vec3 wv = vec3(uWindDir.x, 0.0, uWindDir.y) * uWind * (gust + flutter);
+      fm += wv; ft += wv;
+    } else {
+      fm += vec3(0.0, -uGrav, 0.0); ft += vec3(0.0, -uGrav, 0.0);
+    }
+  }
+  float q = 0.0;
+  if (uRingOn > 0.5) {
+    vec4 rs = ringState();
+    vec3 C, A; ringPose(rs.x, C, A);
+    vec3 cm = ringCore(pm, C, A, uRingR), ct = ringCore(pt, C, A, uRingR);
+    vec3 am = push(pm, cm, uRingInf) * uRingStr, at = push(pt, ct, uRingInf) * uRingStr;
+    fm += am; ft += at;
+    if (uCouple > 0.5) {
+      // Newton's third law: what the ring pushes on, pushes back on the ring. As a force along
+      // the ring's path: minus mass times push, dotted with how that part of the ring moves per tau.
+      vec3 C2, A2; ringPose(rs.x + 1e-3, C2, A2);
+      vec3 vm = (ringCore(pm, C2, A2, uRingR) - cm) * 1e3, vt = (ringCore(pt, C2, A2, uRingR) - ct) * 1e3;
+      q = -0.5 * uMassStrand * (dot(am, vm) + dot(at, vt));
+    }
+  }
+  if (uHandOn > 0.5) { fm += push(pm, uHandP, uHandR) * uRingStr; ft += push(pt, uHandP, uHandR) * uRingStr; }
+  if (uContactOn > 0.5) { fm += crowdPush(pm) * uContactK; ft += crowdPush(pt) * uContactK; }
+
+  vec2 Fm = vec2(dot(fm, r.T1), dot(fm, r.T2)), Ft = vec2(dot(ft, r.T1), dot(ft, r.T2));
+  float kj = uKj, om1 = sqrt(0.343 * kj) / l;
+  float al = 0.306 * om1, be = 0.0939 / om1;
+  vec2 Q1 = 0.5 * l * (Fm + Ft), Q2 = 0.5 * l * Ft;
+  vec2 Kt1 = 2.0 * kj * th1 - kj * th2, Kt2 = kj * (th2 - th1);
+  float im = 2.0 / (l * l);
+  // spring and outside forces through the inverse mass: a = M^-1 (Q - K theta)
+  vec2 R1 = Q1 - Kt1, R2 = Q2 - Kt2;
+  vec2 a1 = im * (R1 - R2), a2 = im * (2.0 * R2 - R1);
+  // damping D = M^-1 C = alpha I + beta M^-1 K, with M^-1 K = (2 kj / l^2) [[3, -2], [-4, 3]].
+  // Half old speed, half new (trapezoidal): (I + h/2 D) w_new = (I - h/2 D) w + h a.
+  float g = 2.0 * kj / (l * l), hh = 0.5 * uDt;
+  mat2 D = mat2(al + be * g * 3.0, -be * g * 4.0, -be * g * 2.0, al + be * g * 3.0); // columns
+  mat2 Ip = mat2(1.0) + hh * D, Im = mat2(1.0) - hh * D, Ipi = inverse(Ip);
+  vec2 rx = Im * vec2(w1.x, w2.x) + uDt * vec2(a1.x, a2.x), ry = Im * vec2(w1.y, w2.y) + uDt * vec2(a1.y, a2.y);
+  vec2 nx = Ipi * rx, ny = Ipi * ry;
+  w1 = vec2(nx.x, ny.x); w2 = vec2(nx.y, ny.y);
+  th1 += w1 * uDt; th2 += w2 * uDt;
+  // Pluck: pull one strand into its first mode shape and let go from rest.
+  if (uPluckOn > 0.5 && abs(i - uPluckIdx) < 0.5) { th1 = uPluckTheta.xy; th2 = uPluckTheta.zw; w1 = vec2(0.0); w2 = vec2(0.0); }
+  float maxB = uMode < 0.5 ? 3.2 : 2.4;
+  float m1 = length(th1), m2 = length(th2);
+  if (m1 > maxB) { th1 *= maxB / m1; w1 *= 0.4; }
+  if (m2 > maxB) { th2 *= maxB / m2; w2 *= 0.4; }
+  outA = vec4(th1, w1); outB = vec4(th2, w2); outQ = vec4(q, 0.0, airF);
+}
+`;
+
+// Counting: every strand's middle and tip land as one count each in the crowding grid.
+const SPLAT_VS = HEADER + COMMON + `
+in float position; // sample number: strand * 2 + (0 middle, 1 tip)
+uniform sampler2D uStateA, uStateB;
+uniform float uTexSize;
+uniform vec3 uGridMin, uGridCell, uGridN;
+uniform vec2 uAtlas;
+uniform float uTilesX;
+flat out vec3 vDrift;
+void main() {
+  float i = floor(position * 0.5), which = position - 2.0 * i;
+  ivec2 px = ivec2(int(mod(i, uTexSize)), int(floor(i / uTexSize)));
+  vec2 th1 = texelFetch(uStateA, px, 0).xy, th2 = texelFetch(uStateB, px, 0).xy;
+  Root r = rootOf(i);
+  float l = 0.5 * r.L;
+  vec3 pm = r.P + normalize(r.N + r.T1 * th1.x + r.T2 * th1.y) * l;
+  vec3 p = which < 0.5 ? pm : pm + normalize(r.N + r.T1 * th2.x + r.T2 * th2.y) * l;
+  vDrift = p - (r.P + r.N * l * (which < 0.5 ? 1.0 : 2.0));
+  vec3 g = floor((p - uGridMin) / uGridCell);
+  gl_PointSize = 1.0;
+  if (g.x < 0.0 || g.y < 0.0 || g.z < 0.0 || g.x >= uGridN.x || g.y >= uGridN.y || g.z >= uGridN.z) { gl_Position = vec4(9.0, 9.0, 9.0, 1.0); return; }
+  float tx = mod(g.y, uTilesX), ty = floor(g.y / uTilesX);
+  vec2 pix = vec2(tx * uGridN.x + g.x + 0.5, ty * uGridN.z + g.z + 0.5);
+  gl_Position = vec4(pix / uAtlas * 2.0 - 1.0, 0.0, 1.0);
+}
+`;
+const SPLAT_FS = HEADER + `
+flat in vec3 vDrift;
+out vec4 outC;
+void main() { outC = vec4(1.0, vDrift); } // count, and the sum of drifts
+`;
+
+// Crowding, pass 1: how many more strand points a cell holds than the same patch of field held at
+// rest, after following that patch's drift (so a whole field leaning in the wind is not crowding;
+// strands converging on each other is). Above a small allowance (uEps), relative to an average cell.
+const CROWD_FS = HEADER + `
+uniform sampler2D uDensity, uRest;
+uniform vec3 uGridN;
+uniform vec2 uAtlas;
+uniform float uTilesX, uEps, uRef;
+uniform vec3 uGridCell;
+out vec4 outC;
+vec2 texelOf(float x, float y, float z) { return vec2(mod(y, uTilesX) * uGridN.x + x, floor(y / uTilesX) * uGridN.z + z); }
+float restAt(vec3 g) { // rest count at a fractional cell position: bilinear in a slice, linear between slices
+  if (g.x < -0.5 || g.z < -0.5 || g.y < -0.5 || g.x > uGridN.x - 0.5 || g.z > uGridN.z - 0.5 || g.y > uGridN.y - 0.5) return 0.0;
+  float y0 = clamp(floor(g.y), 0.0, uGridN.y - 1.0), y1 = min(y0 + 1.0, uGridN.y - 1.0), fy = clamp(g.y - y0, 0.0, 1.0);
+  vec2 xz = clamp(g.xz, vec2(0.0), uGridN.xz - 1.0);
+  float a = texture(uRest, (texelOf(xz.x, y0, xz.y) + 0.5) / uAtlas).x;
+  float b = texture(uRest, (texelOf(xz.x, y1, xz.y) + 0.5) / uAtlas).x;
+  return mix(a, b, fy);
+}
+void main() {
+  vec2 f = floor(gl_FragCoord.xy);
+  float tx = floor(f.x / uGridN.x), ty = floor(f.y / uGridN.z);
+  float x = f.x - tx * uGridN.x, z = f.y - ty * uGridN.z, y = ty * uTilesX + tx;
+  if (y >= uGridN.y) { outC = vec4(0.0); return; }
+  vec4 d = texelFetch(uDensity, ivec2(f), 0), r = texelFetch(uRest, ivec2(f), 0);
+  if (d.x < 0.5) { outC = vec4(0.0); return; }
+  vec3 drift = d.yzw / d.x - (r.x > 0.5 ? r.yzw / r.x : vec3(0.0)); // metres since rest
+  float rest = restAt(vec3(x, y, z) - drift / uGridCell);
+  outC = vec4(max(0.0, d.x - rest - uEps) / uRef, 0.0, 0.0, 1.0);
+}
+`;
+// Crowding, pass 2: its slope across neighbouring cells (per cell), and the crowding itself.
+const PRESS_FS = HEADER + `
+uniform sampler2D uCrowd;
+uniform vec3 uGridN;
+uniform float uTilesX;
+out vec4 outP;
+float crowd(float x, float y, float z) {
+  if (x < 0.0 || y < 0.0 || z < 0.0 || x >= uGridN.x || y >= uGridN.y || z >= uGridN.z) return 0.0;
+  return texelFetch(uCrowd, ivec2(int(mod(y, uTilesX) * uGridN.x + x), int(floor(y / uTilesX) * uGridN.z + z)), 0).x;
+}
+void main() {
+  vec2 f = floor(gl_FragCoord.xy);
+  float tx = floor(f.x / uGridN.x), ty = floor(f.y / uGridN.z);
+  float x = f.x - tx * uGridN.x, z = f.y - ty * uGridN.z, y = ty * uTilesX + tx;
+  if (y >= uGridN.y) { outP = vec4(0.0); return; }
+  vec3 g = 0.5 * vec3(crowd(x + 1.0, y, z) - crowd(x - 1.0, y, z), crowd(x, y + 1.0, z) - crowd(x, y - 1.0, z), crowd(x, y, z + 1.0) - crowd(x, y, z - 1.0));
+  outP = vec4(g, crowd(x, y, z));
+}
+`;
+const COPY_FS = HEADER + `
+uniform sampler2D uSrc;
+out vec4 outC;
+void main() { outC = texelFetch(uSrc, ivec2(gl_FragCoord.xy), 0); }
+`;
+// Summing: each pass adds up 4 x 4 blocks, until one number is left.
+const REDUCE_FS = HEADER + `
+uniform sampler2D uSrc;
+uniform vec2 uSrcSize;
+out vec4 outS;
+void main() {
+  ivec2 o = ivec2(gl_FragCoord.xy) * 4;
+  float sum = 0.0;
+  for (int y = 0; y < 4; y++) for (int x = 0; x < 4; x++) {
+    ivec2 t = o + ivec2(x, y);
+    if (float(t.x) < uSrcSize.x && float(t.y) < uSrcSize.y) sum += texelFetch(uSrc, t, 0).x;
+  }
+  outS = vec4(sum, 0.0, 0.0, 1.0);
+}
+`;
+// The ring on a motor. tau is its place on the path; the motor tries to hold its normal pace and
+// the strands' summed push (Q) works against it. J is the ring's inertia along the path.
+const RING_FS = HEADER + `
+uniform float uMode, uAmp, uRingR, uRingY, uDt, uRingMass, uTauFree, uMotorT, uCouple;
+uniform sampler2D uRingTex, uQ;
+out vec4 outR;
+void ringPose(float tau, out vec3 C, out vec3 A) {
+  if (uMode < 0.5) {
+    C = vec3(uAmp * sin(0.45 * tau), uRingY, uAmp * 0.35 * sin(0.9 * tau));
+    vec2 v = vec2(uAmp * 0.45 * cos(0.45 * tau), uAmp * 0.35 * 0.9 * cos(0.9 * tau));
+    float sp = max(length(v), 1e-6);
+    A = vec3(-v.y / sp, 0.0, v.x / sp);
+  } else {
+    C = vec3(0.0);
+    A = normalize(vec3(sin(tau * 0.6), 0.55 * cos(tau * 0.37), cos(tau * 0.6)));
+  }
+}
+vec3 ringPoint(float tau, float a) {
+  vec3 C, A; ringPose(tau, C, A);
+  vec3 up = abs(A.y) < 0.9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
+  vec3 U = normalize(cross(A, up)), V = cross(A, U);
+  return C + (U * cos(a) + V * sin(a)) * uRingR;
+}
+void main() {
+  vec4 s = texelFetch(uRingTex, ivec2(0, 0), 0);
+  float tau = s.x, tauDot = s.y;
+  // inertia along the path: mass times the mean square speed of ring points per unit tau
+  float v2 = 0.0;
+  for (int k = 0; k < 16; k++) {
+    float a = 6.2831853 * float(k) / 16.0;
+    vec3 d = (ringPoint(tau + 1e-3, a) - ringPoint(tau, a)) * 1e3;
+    v2 += dot(d, d) / 16.0;
+  }
+  // a rolling hoop also spins: add m |dC/dtau|^2 for that (its points' mean square speed already counts moving and turning)
+  vec3 Ca, Aa, Cb, Ab; ringPose(tau, Ca, Aa); ringPose(tau + 1e-3, Cb, Ab);
+  vec3 dC = (Cb - Ca) * 1e3;
+  float J = uRingMass * (v2 + (uMode < 0.5 ? dot(dC, dC) : 0.0));
+  float Q = uCouple > 0.5 ? texelFetch(uQ, ivec2(0, 0), 0).x : 0.0;
+  float motor = J * (uTauFree - tauDot) / uMotorT;
+  tauDot += (motor + Q) / max(J, 1e-6) * uDt;
+  vec3 C0, A0, C1, A1; ringPose(tau, C0, A0); ringPose(tau + tauDot * uDt, C1, A1);
+  float rolled = s.z + length(C1 - C0);
+  float spin = s.w + 1.4 * (tauDot / uTauFree) * uDt;
+  tau += tauDot * uDt;
+  outR = vec4(tau, tauDot, rolled, spin);
+}
+`;
+
+const STRAND_VS = HEADER + COMMON + `
+in float aT;
+in float aSide;
+in float aIdx;
+uniform mat4 projectionMatrix;
+uniform mat4 modelViewMatrix;
+uniform vec3 uCamPos;
+uniform sampler2D uStateA, uStateB;
+uniform float uTexSize;
+uniform float uWidth;
+uniform float uRingOn;
+uniform float uTag, uTagWiden;
+out float vT;
+out vec3 vTang;
+out vec3 vWorld;
+out float vR;
+out float vGlow;
+out float vTag;
+
+void main() {
+  Root r = rootOf(aIdx);
+  float tagged = abs(aIdx - uTag) < 0.5 ? 1.0 : 0.0;
+  ivec2 px = ivec2(int(mod(aIdx, uTexSize)), int(floor(aIdx / uTexSize)));
+  vec2 th1 = texelFetch(uStateA, px, 0).xy, th2 = texelFetch(uStateB, px, 0).xy;
+  float l = 0.5 * r.L;
+  vec3 P0 = r.P;
+  vec3 Pm = P0 + normalize(r.N + r.T1 * th1.x + r.T2 * th1.y) * l;
+  vec3 P2 = Pm + normalize(r.N + r.T1 * th2.x + r.T2 * th2.y) * l;
+  // one smooth curve that passes through the root, the middle joint and the tip
+  vec3 P1 = 2.0 * Pm - 0.5 * (P0 + P2);
+  float t = aT;
+  float it = 1.0 - t;
+  vec3 pos = it * it * P0 + 2.0 * it * t * P1 + t * t * P2;
+  vec3 tang = normalize(2.0 * it * (P1 - P0) + 2.0 * t * (P2 - P1) + vec3(0.0, 1e-5, 0.0));
+  vec3 side;
+  float w;
+  if (uMode < 0.5) {
+    side = normalize(r.W - tang * dot(r.W, tang));
+    w = uWidth * (0.7 + 0.6 * r.r) * pow(it, 0.8);
+  } else {
+    side = normalize(cross(tang, normalize(uCamPos - pos)));
+    w = uWidth * (1.0 - 0.75 * t);
+  }
+  w *= mix(1.0, uTagWiden, tagged);
+  pos += side * aSide * w * 0.5;
+
+  float glow = 0.0;
+  if (uRingOn > 0.5) {
+    vec3 RC, RA; ringPose(ringState().x, RC, RA);
+    float dist = length(pos - ringCore(pos, RC, RA, uRingR));
+    glow = exp(-dist * dist / (uRingR * uRingR * 0.16 + 0.004));
+  }
+  vT = t; vTang = tang; vWorld = pos; vR = r.r; vGlow = glow; vTag = tagged;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+}
+`;
+
+const STRAND_FS = HEADER + `
+in float vT;
+in vec3 vTang;
+in vec3 vWorld;
+in float vR;
+in float vGlow;
+in float vTag;
+uniform float uMode;
+uniform vec3 uCamPos, uSunDir, uFogColor, uRingColor;
+uniform float uFogNear, uFogFar, uAO;
+out vec4 outColor;
+
+void main() {
+  vec3 T = normalize(vTang);
+  vec3 V = normalize(uCamPos - vWorld);
+  vec3 L = normalize(uSunDir);
+  vec3 H = normalize(L + V);
+  float TL = dot(T, L);
+  float TH = dot(T, H);
+  float kd = sqrt(max(0.0, 1.0 - TL * TL));
+  float ks = pow(sqrt(max(0.0, 1.0 - TH * TH)), uMode < 0.5 ? 36.0 : 90.0);
+  vec3 base;
+  if (uMode < 0.5) {
+    vec3 root = mix(vec3(0.05, 0.12, 0.04), vec3(0.10, 0.19, 0.05), vR);
+    vec3 tip = mix(vec3(0.40, 0.60, 0.16), vec3(0.74, 0.79, 0.32), vR * vR);
+    base = mix(root, tip, smoothstep(0.0, 1.0, vT));
+  } else {
+    vec3 root = vec3(0.13, 0.05, 0.12);
+    vec3 tip = mix(vec3(0.96, 0.52, 0.76), vec3(1.0, 0.80, 0.58), vR);
+    base = mix(root, tip, pow(vT, 0.7));
+  }
+  float ao = mix(uAO, 1.0, vT);
+  vec3 sun = vec3(1.0, 0.80, 0.60);
+  vec3 sky = vec3(0.36, 0.40, 0.78);
+  vec3 col = base * (sky * 0.38 + sun * (0.22 + 0.78 * kd)) * ao;
+  col += sun * ks * (uMode < 0.5 ? 0.16 : 0.32) * vT;
+  if (uMode < 0.5) {
+    float back = pow(max(0.0, dot(-V, L)), 4.0);
+    col += vec3(0.50, 0.72, 0.16) * back * vT * 0.55;
+  }
+  col += uRingColor * vGlow * (0.55 + 0.45 * vT) * 1.25;
+  float fog = smoothstep(uFogNear, uFogFar, length(uCamPos - vWorld));
+  col = mix(col, uFogColor, fog);
+  // The plucked strand: one bright color, no fog, so it can be found among a million.
+  // Keep the light on it (diffuse and shine) so it still reads as a bent strand, not a flat cutout.
+  vec3 tagCol = uMode < 0.5 ? vec3(0.95, 1.0, 0.45) : vec3(0.55, 1.0, 1.0);
+  col = mix(col, tagCol * (0.3 + 0.7 * kd) * mix(0.55, 1.0, vT) + sun * ks * 0.35, vTag * 0.85);
+  outColor = vec4(col, 1.0);
+}
+`;
+
+const SURF_VS = HEADER + `
+in vec3 position;
+in vec3 normal;
+uniform mat4 projectionMatrix, modelViewMatrix, modelMatrix;
+out vec3 vW;
+out vec3 vN;
+void main() {
+  vec4 w = modelMatrix * vec4(position, 1.0);
+  vW = w.xyz;
+  vN = normalize(mat3(modelMatrix) * normal);
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+`;
+
+const SURF_FS = HEADER + `
+uniform float uMode;
+in vec3 vW;
+in vec3 vN;
+uniform vec3 uColor, uCamPos, uSunDir, uFogColor, uRingColor;
+uniform float uFogNear, uFogFar, uRingOn;
+out vec4 outColor;
+` + RING_GLSL + `
+void main() {
+  vec3 N = normalize(vN);
+  float diff = 0.35 + 0.65 * max(0.0, dot(N, normalize(uSunDir)));
+  vec3 col = uColor * diff;
+  if (uRingOn > 0.5) {
+    vec3 RC, RA; ringPose(ringState().x, RC, RA);
+    vec3 q = vW - RC;
+    vec3 qp = q - dot(q, RA) * RA;
+    float lq = length(qp);
+    vec3 k = RC + (lq > 1e-5 ? qp / lq : vec3(1.0, 0.0, 0.0)) * uRingR;
+    float dist = length(vW - k);
+    col += uRingColor * exp(-dist * dist / (uRingR * uRingR * 0.22 + 0.004)) * 0.7;
+  }
+  float fog = smoothstep(uFogNear, uFogFar, length(uCamPos - vW));
+  outColor = vec4(mix(col, uFogColor, fog), 1.0);
+}
+`;
+
+// ---- The air in the grass: a square grid, one layer as tall as the grass, "stable fluids" style.
+// Every air step: carry the air along with itself, add the pushes, then make it flow without
+// bunching up (solve for pressure and take its slope off).
+// 1. Each blade's drag force lands, summed, in the cell above its root.
+const AIR_SPLAT_VS = HEADER + COMMON + `
+in float position; // strand number
+uniform sampler2D uQTex, uStateA, uStateB;
+uniform float uTexSize;
+uniform vec2 uAirMin;
+uniform float uAirSize, uAirN;
+flat out vec2 vF;
+void main() {
+  float i = position;
+  ivec2 px = ivec2(int(mod(i, uTexSize)), int(floor(i / uTexSize)));
+  vF = texelFetch(uQTex, px, 0).zw;
+  Root r = rootOf(i);
+  // the push lands halfway between the blade's middle joint and its tip, where the drag acts
+  vec2 th1 = texelFetch(uStateA, px, 0).xy, th2 = texelFetch(uStateB, px, 0).xy;
+  float l = 0.5 * r.L;
+  vec3 pm = r.P + normalize(r.N + r.T1 * th1.x + r.T2 * th1.y) * l;
+  vec3 pt = pm + normalize(r.N + r.T1 * th2.x + r.T2 * th2.y) * l;
+  vec2 g = floor((0.5 * (pm.xz + pt.xz) - uAirMin) / uAirSize * uAirN);
+  gl_PointSize = 1.0;
+  if (g.x < 0.0 || g.y < 0.0 || g.x >= uAirN || g.y >= uAirN) { gl_Position = vec4(9.0, 9.0, 9.0, 1.0); return; }
+  gl_Position = vec4((g + 0.5) / uAirN * 2.0 - 1.0, 0.0, 1.0);
+}
+`;
+const AIR_SPLAT_FS = HEADER + `
+flat in vec2 vF;
+out vec4 outC;
+void main() { outC = vec4(vF, 0.0, 0.0); }
+`;
+// 2. Carry the air along with itself (look back along the flow).
+const ADVECT_FS = HEADER + `
+uniform sampler2D uVel;
+uniform float uAirN, uAirSize, uDtAir;
+out vec4 outV;
+void main() {
+  vec2 uv = gl_FragCoord.xy / uAirN;
+  vec2 u = texture(uVel, uv).xy;
+  vec2 back = clamp(uv - u * uDtAir / uAirSize, vec2(0.5 / uAirN), vec2(1.0 - 0.5 / uAirN));
+  outV = vec4(texture(uVel, back).xy, 0.0, 1.0);
+}
+`;
+// 3. The pushes: the gusts above pull the air in the grass along (mixing over uTauMix seconds),
+//    the blades hold it back with the exact opposite of their drag, and the ring drags air with it.
+const AIR_FORCE_FS = HEADER + `
+uniform float uMode;
+uniform vec2 uWindDir;
+uniform float uTime;
+` + AIR_GLSL + RING_GLSL + `
+uniform sampler2D uVel, uDeposit;
+uniform float uDtAir, uTauMix, uAirMassCell, uForceOn, uRingOn, uRingInf, uTauFree, uRingStir, uCanopyH;
+out vec4 outV;
+void main() {
+  vec2 cellUV = gl_FragCoord.xy / uAirN;
+  vec2 xz = uAirMin + cellUV * uAirSize;
+  vec2 u = texelFetch(uVel, ivec2(gl_FragCoord.xy), 0).xy;
+  vec2 above = uForceOn > 0.5 ? windAbove(xz, uTime) : vec2(0.0);
+  vec2 acc = (above - u) / uTauMix;
+  // the blades' drag, back on the air: it can slow a cell's air to a stop, never send it backwards
+  vec2 dv = -texelFetch(uDeposit, ivec2(gl_FragCoord.xy), 0).xy / uAirMassCell * uDtAir;
+  float lim = length(u), m = length(dv);
+  if (m > lim) dv *= lim / max(m, 1e-9);
+  u += dv;
+  if (uRingOn > 0.5) {
+    vec4 rs = ringState();
+    vec3 C, A, C2, A2; ringPose(rs.x, C, A); ringPose(rs.x + 1e-3, C2, A2);
+    vec2 vr = (C2.xz - C.xz) * 1e3 * rs.y;           // the ring's ground speed
+    vec2 fwd = normalize(vec2(A.z, -A.x) + 1e-6);     // its direction of travel, flat
+    float chord = sqrt(max(0.0, uRingR * uRingR - (uRingY - uCanopyH) * (uRingY - uCanopyH)));
+    vec2 d = xz - C.xz;
+    float along = abs(dot(d, fwd)), across = abs(dot(d, vec2(-fwd.y, fwd.x)));
+    float w = clamp(1.0 - across / uRingInf, 0.0, 1.0) * clamp(1.0 - max(0.0, along - chord) / uRingInf, 0.0, 1.0);
+    acc += uRingStir * w * (vr - u);
+  }
+  outV = vec4(u + acc * uDtAir, 0.0, 1.0);
+}
+`;
+// 4. How much air leaves each cell (divergence), 5. pressure by Jacobi sweeps, 6. take its slope off.
+const AIR_DIV_FS = HEADER + `
+uniform sampler2D uVel;
+uniform float uAirN, uCell;
+out vec4 outD;
+vec2 at(ivec2 p) { return texelFetch(uVel, clamp(p, ivec2(0), ivec2(int(uAirN) - 1)), 0).xy; }
+void main() {
+  ivec2 p = ivec2(gl_FragCoord.xy);
+  float div = (at(p + ivec2(1, 0)).x - at(p - ivec2(1, 0)).x + at(p + ivec2(0, 1)).y - at(p - ivec2(0, 1)).y) / (2.0 * uCell);
+  outD = vec4(div, 0.0, 0.0, 1.0);
+}
+`;
+// Screened (open top): (4 + kappa h^2) p = sum of neighbours - h^2 div, kappa = 1 / H^2, so air that
+// cannot go sideways may leave through the top of the layer instead of being forced around.
+const AIR_JACOBI_FS = HEADER + `
+uniform sampler2D uP, uDiv;
+uniform float uAirN, uCell, uKappa;
+out vec4 outP;
+float at(ivec2 p) { return texelFetch(uP, clamp(p, ivec2(0), ivec2(int(uAirN) - 1)), 0).x; }
+void main() {
+  ivec2 p = ivec2(gl_FragCoord.xy);
+  float d = texelFetch(uDiv, p, 0).x;
+  outP = vec4((at(p + ivec2(1, 0)) + at(p - ivec2(1, 0)) + at(p + ivec2(0, 1)) + at(p - ivec2(0, 1)) - d * uCell * uCell) / (4.0 + uKappa * uCell * uCell), 0.0, 0.0, 1.0);
+}
+`;
+const AIR_PROJECT_FS = HEADER + `
+uniform sampler2D uVel, uP;
+uniform float uAirN, uCell;
+out vec4 outV;
+float at(ivec2 p) { return texelFetch(uP, clamp(p, ivec2(0), ivec2(int(uAirN) - 1)), 0).x; }
+void main() {
+  ivec2 p = ivec2(gl_FragCoord.xy);
+  vec2 g = vec2(at(p + ivec2(1, 0)) - at(p - ivec2(1, 0)), at(p + ivec2(0, 1)) - at(p - ivec2(0, 1))) / (2.0 * uCell);
+  outV = vec4(texelFetch(uVel, p, 0).xy - g, 0.0, 1.0);
+}
+`;
+// Pollen: 4,096 specks carried by the air (and a little up and down), so the wind can be seen.
+const POLLEN_FS = HEADER + `
+uniform sampler2D uPollen, uAirTex;
+uniform vec2 uAirMin;
+uniform float uAirSize, uAirN, uDtAir, uStepN, uCanopyH;
+out vec4 outP;
+float hashf(float n) { return fract(sin(n * 12.9898 + 78.233) * 43758.5453); }
+void main() {
+  vec4 p = texelFetch(uPollen, ivec2(gl_FragCoord.xy), 0);
+  float id = floor(gl_FragCoord.y) * 64.0 + floor(gl_FragCoord.x);
+  vec2 uv = (p.xz - uAirMin) / uAirSize;
+  bool out_ = p.w <= 0.0 || uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0;
+  if (out_) {
+    float s = id * 7.31 + uStepN * 0.137;
+    p = vec4(uAirMin.x + hashf(s) * uAirSize, uCanopyH * (0.2 + 1.6 * hashf(s + 1.0)), uAirMin.y + hashf(s + 2.0) * uAirSize, 4.0 + 6.0 * hashf(s + 3.0));
+  } else {
+    vec2 u = texture(uAirTex, clamp(uv, vec2(0.5 / uAirN), vec2(1.0 - 0.5 / uAirN))).xy;
+    p.xz += u * uDtAir;
+    p.y = clamp(p.y + (hashf(id + uStepN) - 0.5) * 0.4 * uCanopyH * uDtAir, 0.02, uCanopyH * 2.0);
+    p.w -= uDtAir;
+  }
+  outP = p;
+}
+`;
+const POLLEN_VS = HEADER + `
+in float position;
+uniform sampler2D uPollen;
+uniform mat4 projectionMatrix, modelViewMatrix;
+uniform float uPollenSize;
+out float vA;
+void main() {
+  vec4 p = texelFetch(uPollen, ivec2(int(mod(position, 64.0)), int(floor(position / 64.0))), 0);
+  vA = clamp(p.w, 0.0, 1.0);
+  gl_PointSize = uPollenSize;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(p.xyz, 1.0);
+}
+`;
+const POLLEN_DRAW_FS = HEADER + `
+in float vA;
+out vec4 outC;
+void main() {
+  vec2 c = gl_PointCoord - 0.5;
+  float a = smoothstep(0.5, 0.1, length(c)) * 0.8 * vA;
+  outC = vec4(1.0, 0.95, 0.72, a);
+}
+`;
+
+// The glowing ring and its halo, placed on the graphics chip from the ring's state.
+const RING_VS = HEADER + `
+uniform float uMode;
+in vec3 position;
+uniform mat4 projectionMatrix, modelViewMatrix;
+` + RING_GLSL + `
+void main() {
+  vec4 rs = ringState();
+  vec3 C, A; ringPose(rs.x, C, A);
+  vec3 up = abs(A.y) < 0.9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
+  vec3 U = normalize(cross(A, up)), V = cross(A, U);
+  float spin = uMode < 0.5 ? -rs.z / uRingR : rs.w;
+  float c = cos(spin), s = sin(spin);
+  vec2 xy = vec2(position.x * c - position.y * s, position.x * s + position.y * c);
+  vec3 w = C + U * xy.x + V * xy.y + A * position.z;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(w, 1.0);
+}
+`;
+const RING_MESH_FS = HEADER + `
+uniform vec3 uColor;
+uniform float uAlpha;
+out vec4 outColor;
+void main() { outColor = vec4(uColor, uAlpha); }
+`;
+
+/* ---------------------------------------------------------------- uniforms */
+const shared = {
+  uMode: { value: 0 }, uCount: { value: 1 }, uFieldHalf: { value: 0 }, uLen: { value: 0.5 }, uBallR: { value: 1 },
+  uTexSize: { value: 1 },
+  uRingTex: { value: null }, uRingY: { value: 0.3 }, uAmp: { value: 0.55 },
+  uRingR: { value: 0.3 }, uRingOn: { value: 1 },
+  uCamPos: { value: new THREE.Vector3() },
+  uSunDir: { value: new THREE.Vector3(-0.55, 0.38, -0.74).normalize() },
+  uFogColor: { value: new THREE.Vector3(0.36, 0.28, 0.42) },
+  uFogNear: { value: 6 }, uFogFar: { value: 14 },
+  uRingColor: { value: new THREE.Vector3(0.55, 0.95, 1.0) },
+};
+
+const grid = {
+  uGridMin: { value: new THREE.Vector3() }, uGridCell: { value: new THREE.Vector3(1, 1, 1) }, uGridN: { value: new THREE.Vector3(1, 1, 1) },
+  uAtlas: { value: new THREE.Vector2(1, 1) }, uTilesX: { value: 1 },
+};
+const airU = {
+  uAirTex: { value: null }, uAirMin: { value: new THREE.Vector2() }, uAirSize: { value: 1 }, uAirN: { value: 128 },
+  uWindU0: { value: 1.6 }, uAirOn: { value: 0 },
+};
+const simUniforms = {
+  ...shared, ...grid, ...airU, uDragK: { value: 7.2 },
+  uStateA: { value: null }, uStateB: { value: null }, uPress: { value: null }, uTime: { value: 0 }, uDt: { value: 1 / 120 },
+  uRingInf: { value: 0.3 }, uRingStr: { value: 22 }, uCouple: { value: 1 }, uMassStrand: { value: 0.0005 },
+  uHandP: { value: new THREE.Vector3(0, -99, 0) }, uHandR: { value: 0.2 }, uHandOn: { value: 0 },
+  uKj: { value: 3.03 }, uWind: { value: 2.3 }, uGrav: { value: 9.8 }, uForceOn: { value: 1 },
+  uWindDir: { value: new THREE.Vector2(0.8, 0.6).normalize() },
+  uPluckIdx: { value: -1 }, uPluckOn: { value: 0 }, uPluckTheta: { value: new THREE.Vector4() },
+  uContactOn: { value: 1 }, uContactK: { value: 8 },
+};
+const passMat = (fs, uniforms, extra = {}) => new THREE.RawShaderMaterial({
+  glslVersion: THREE.GLSL3, uniforms, vertexShader: SIM_VS, fragmentShader: fs, depthTest: false, depthWrite: false, ...extra,
+});
+const simMat = passMat(SIM_FS, simUniforms);
+const crowdUniforms = { ...grid, uDensity: { value: null }, uRest: { value: null }, uEps: { value: 1.5 }, uRef: { value: 1 } };
+const crowdMat = passMat(CROWD_FS, crowdUniforms);
+const pressUniforms = { ...grid, uCrowd: { value: null } };
+const pressMat = passMat(PRESS_FS, pressUniforms);
+const copyUniforms = { uSrc: { value: null } };
+const copyMat = passMat(COPY_FS, copyUniforms);
+const reduceUniforms = { uSrc: { value: null }, uSrcSize: { value: new THREE.Vector2() } };
+const reduceMat = passMat(REDUCE_FS, reduceUniforms);
+const ringSimUniforms = {
+  uMode: shared.uMode, uAmp: shared.uAmp, uRingR: shared.uRingR, uRingY: shared.uRingY,
+  uDt: { value: 1 / 120 }, uRingMass: { value: 1 }, uTauFree: { value: 1 }, uMotorT: { value: 0.4 }, uCouple: simUniforms.uCouple,
+  uRingTex: { value: null }, uQ: { value: null },
+};
+const ringSimMat = passMat(RING_FS, ringSimUniforms);
+const simScene = new THREE.Scene();
+const simQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), simMat);
+simQuad.frustumCulled = false;
+simScene.add(simQuad);
+const simCam = new THREE.Camera();
+function runPass(mat, target) {
+  simQuad.material = mat;
+  renderer.setRenderTarget(target);
+  renderer.render(simScene, simCam);
+}
+// the counting pass draws points, one per strand middle and one per strand tip
+const splatUniforms = { ...shared, ...grid, uStateA: simUniforms.uStateA, uStateB: simUniforms.uStateB };
+const splatMat = new THREE.RawShaderMaterial({
+  glslVersion: THREE.GLSL3, uniforms: splatUniforms, vertexShader: SPLAT_VS, fragmentShader: SPLAT_FS,
+  depthTest: false, depthWrite: false, blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor,
+});
+const splatScene = new THREE.Scene();
+// the air solver's passes
+const AIR_TYPE = SIM_TYPE === THREE.FloatType && renderer.extensions.has('OES_texture_float_linear') ? THREE.FloatType : THREE.HalfFloatType;
+const airSplatUniforms = { ...shared, uQTex: { value: null }, uStateA: simUniforms.uStateA, uStateB: simUniforms.uStateB, uTexSize: shared.uTexSize, uAirMin: airU.uAirMin, uAirSize: airU.uAirSize, uAirN: airU.uAirN };
+const airSplatMat = new THREE.RawShaderMaterial({
+  glslVersion: THREE.GLSL3, uniforms: airSplatUniforms, vertexShader: AIR_SPLAT_VS, fragmentShader: AIR_SPLAT_FS,
+  depthTest: false, depthWrite: false, blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor,
+});
+const airCommon = { uAirN: airU.uAirN, uAirSize: airU.uAirSize, uDtAir: { value: 1 / 60 }, uCell: { value: 0.01 } };
+const advectU = { ...airCommon, uVel: { value: null } };
+const advectMat = passMat(ADVECT_FS, advectU);
+const airForceU = {
+  ...shared, ...airU, ...airCommon, uWindDir: simUniforms.uWindDir, uTime: simUniforms.uTime, uForceOn: simUniforms.uForceOn,
+  uVel: { value: null }, uDeposit: { value: null }, uTauMix: { value: 0.8 }, uAirMassCell: { value: 1 },
+  uRingInf: simUniforms.uRingInf, uTauFree: { value: 1 }, uRingStir: { value: 3 }, uCanopyH: { value: 0.5 },
+};
+const airForceMat = passMat(AIR_FORCE_FS, airForceU);
+const divU = { ...airCommon, uVel: { value: null } };
+const divMat = passMat(AIR_DIV_FS, divU);
+const jacobiU = { ...airCommon, uP: { value: null }, uDiv: { value: null }, uKappa: { value: 1 } };
+const jacobiMat = passMat(AIR_JACOBI_FS, jacobiU);
+const projectU = { ...airCommon, uVel: { value: null }, uP: { value: null } };
+const projectMat = passMat(AIR_PROJECT_FS, projectU);
+const pollenU = { uPollen: { value: null }, uAirTex: airU.uAirTex, uAirMin: airU.uAirMin, uAirSize: airU.uAirSize, uAirN: airU.uAirN, uDtAir: airCommon.uDtAir, uStepN: { value: 0 }, uCanopyH: airForceU.uCanopyH };
+const pollenMat = passMat(POLLEN_FS, pollenU);
+const pollenDrawMat = new THREE.RawShaderMaterial({ glslVersion: THREE.GLSL3, vertexShader: POLLEN_VS, fragmentShader: POLLEN_DRAW_FS,
+  uniforms: { uPollen: { value: null }, uPollenSize: { value: 3 } }, transparent: true, depthWrite: false });
+const JACOBI_SWEEPS = 20;
+
+const strandUniforms = {
+  ...shared,
+  uStateA: simUniforms.uStateA, uStateB: simUniforms.uStateB, uWidth: { value: 0.05 }, uAO: { value: 0.8 },
+  uTag: { value: -1 }, uTagWiden: { value: 1 },
+};
+const strandMat = new THREE.RawShaderMaterial({
+  glslVersion: THREE.GLSL3, uniforms: strandUniforms, vertexShader: STRAND_VS, fragmentShader: STRAND_FS,
+  side: THREE.DoubleSide,
+});
+
+function surfaceMaterial(hex) {
+  return new THREE.RawShaderMaterial({
+    glslVersion: THREE.GLSL3,
+    uniforms: { ...shared, uColor: { value: new THREE.Vector3(...hex) } },
+    vertexShader: SURF_VS, fragmentShader: SURF_FS,
+  });
+}
+
+/* ---------------------------------------------------------------- simulation state */
+// Everything the physics needs lives on the graphics chip: two ping-pong sets of (A, B, Q)
+// textures for the strands, a crowding grid, a chain of summing textures and the ring's state.
+const COUPLE_OK = SIM_TYPE === THREE.FloatType; // summing a million pushes needs full precision
+class Sim {
+  constructor(count, g, airSpec) {
+    this.count = count;
+    this.air = airSpec ? new Air(count, airSpec.ext, airSpec.N) : null;
+    this.size = Math.max(1, Math.ceil(Math.sqrt(count)));
+    const opts = { type: SIM_TYPE, format: THREE.RGBAFormat, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, depthBuffer: false, stencilBuffer: false, generateMipmaps: false };
+    this.rt = [0, 1].map(() => new THREE.WebGLMultipleRenderTargets(this.size, this.size, 3, opts));
+    this.cur = 0;
+    for (const t of this.rt) this.clear(t);
+    // the ring: (tau, tau speed, distance rolled, spin), ping-pong
+    this.ring = [0, 1].map(() => new THREE.WebGLRenderTarget(1, 1, opts));
+    this.rcur = 0;
+    // summing chain for the strands' push on the ring
+    this.sums = [];
+    for (let n = this.size; n > 1;) { n = Math.ceil(n / 4); this.sums.push(new THREE.WebGLRenderTarget(n, n, opts)); }
+    if (!this.sums.length) this.sums.push(new THREE.WebGLRenderTarget(1, 1, opts));
+    // crowding grid
+    this.grid = g;
+    if (g) {
+      const gopts = { type: THREE.HalfFloatType, format: THREE.RGBAFormat, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, depthBuffer: false, stencilBuffer: false, generateMipmaps: false };
+      this.density = new THREE.WebGLRenderTarget(g.W, g.H, gopts);
+      this.press = new THREE.WebGLRenderTarget(g.W, g.H, { ...gopts, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter });
+      this.rest = new THREE.WebGLRenderTarget(g.W, g.H, { ...gopts, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter });
+      this.crowd = new THREE.WebGLRenderTarget(g.W, g.H, gopts);
+      const ids = new Float32Array(2 * count); for (let i = 0; i < ids.length; i++) ids[i] = i;
+      const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(ids, 1));
+      geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6); // the "positions" are sample numbers; never measure them
+      this.points = new THREE.Points(geo, splatMat); this.points.frustumCulled = false;
+      this.clear(this.density); this.clear(this.press); this.clear(this.rest);
+    }
+    renderer.setRenderTarget(null);
+  }
+  clear(t) { renderer.setRenderTarget(t); renderer.clear(true, false, false); }
+  setRing(tauDot) {
+    // start at the beginning of the path, already moving at the motor's pace
+    const data = new Float32Array([0, tauDot, 0, 0]);
+    const tex = new THREE.DataTexture(data, 1, 1, THREE.RGBAFormat, THREE.FloatType); tex.needsUpdate = true;
+    copyUniforms.uSrc.value = tex;
+    for (const t of this.ring) runPass(copyMat, t);
+    tex.dispose();
+    this.bind();
+  }
+  bind() {
+    const st = this.rt[this.cur].texture;
+    simUniforms.uStateA.value = st[0]; simUniforms.uStateB.value = st[1];
+    shared.uRingTex.value = this.ring[this.rcur].texture;
+    simUniforms.uPress.value = this.press ? this.press.texture : null;
+  }
+  // count every strand's middle and tip into the grid, then turn counts into crowding slopes
+  splat() {
+    if (!this.grid) return;
+    this.bind();
+    this.clear(this.density);
+    splatScene.add(this.points);
+    renderer.setRenderTarget(this.density); renderer.render(splatScene, simCam);
+    splatScene.remove(this.points);
+    crowdUniforms.uDensity.value = this.density.texture; crowdUniforms.uRest.value = this.rest.texture;
+    runPass(crowdMat, this.crowd);
+    pressUniforms.uCrowd.value = this.crowd.texture;
+    runPass(pressMat, this.press);
+  }
+  // the counts of the field at rest: crowding is measured against these, cell by cell
+  snapRest() {
+    if (!this.grid) return;
+    this.splat();
+    copyUniforms.uSrc.value = this.density.texture; runPass(copyMat, this.rest);
+    this.splat();
+    renderer.setRenderTarget(null);
+  }
+  step() {
+    this.bind();
+    runPass(simMat, this.rt[1 - this.cur]);
+    this.cur = 1 - this.cur;
+    // sum every strand's push on the ring, then move the ring
+    if (COUPLE_OK && simUniforms.uCouple.value > 0.5) {
+      let src = this.rt[this.cur].texture[2], n = this.size;
+      for (const t of this.sums) {
+        reduceUniforms.uSrc.value = src; reduceUniforms.uSrcSize.value.set(n, n);
+        runPass(reduceMat, t); src = t.texture; n = t.width;
+      }
+      ringSimUniforms.uQ.value = this.sums[this.sums.length - 1].texture;
+    }
+    ringSimUniforms.uRingTex.value = this.ring[this.rcur].texture;
+    runPass(ringSimMat, this.ring[1 - this.rcur]);
+    this.rcur = 1 - this.rcur;
+    this.bind();
+    renderer.setRenderTarget(null);
+  }
+  read(rt, x, y, w, h, buf) { renderer.readRenderTargetPixels(rt, x, y, w, h, buf); return buf; }
+  // A and B of strand i, through a copy into a plain 2 x 1 target (multi-output targets read only their first texture)
+  peek(i, buf) {
+    const px = i % this.size, py = Math.floor(i / this.size);
+    peekUniforms.uA.value = this.rt[this.cur].texture[0]; peekUniforms.uB.value = this.rt[this.cur].texture[1];
+    peekUniforms.uAt.value.set(px, py);
+    runPass(peekMat, peekRT);
+    renderer.readRenderTargetPixels(peekRT, 0, 0, 2, 1, buf);
+    renderer.setRenderTarget(null);
+    return buf;
+  }
+  ringNow(buf) { return this.read(this.ring[this.rcur], 0, 0, 1, 1, buf); }
+  pushNow(buf) { return COUPLE_OK ? this.read(this.sums[this.sums.length - 1], 0, 0, 1, 1, buf) : buf.fill(0); }
+  dispose() {
+    this.rt.forEach((t) => t.dispose()); this.ring.forEach((t) => t.dispose()); this.sums.forEach((t) => t.dispose());
+    if (this.grid) { this.density.dispose(); this.press.dispose(); this.rest.dispose(); this.crowd.dispose(); this.points.geometry.dispose(); }
+    if (this.air) this.air.dispose();
+  }
+}
+// The air in the grass: velocity, pressure and divergence grids, the blades' drag landing in it,
+// and the pollen it carries. Square, N x N cells, from -ext to +ext on both ground axes.
+class Air {
+  constructor(count, ext, N) {
+    this.N = N; this.ext = ext; this.size = 2 * ext; this.cell = this.size / N;
+    const base = { type: AIR_TYPE, format: THREE.RGBAFormat, depthBuffer: false, stencilBuffer: false, generateMipmaps: false };
+    const lin = { ...base, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter };
+    const near = { ...base, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter };
+    this.vel = [0, 1].map(() => new THREE.WebGLRenderTarget(N, N, lin)); this.vcur = 0;
+    this.p = [0, 1].map(() => new THREE.WebGLRenderTarget(N, N, near)); this.pcur = 0;
+    this.div = new THREE.WebGLRenderTarget(N, N, near);
+    this.dep = new THREE.WebGLRenderTarget(N, N, { ...near, type: THREE.HalfFloatType });
+    const ids = new Float32Array(count); for (let i = 0; i < count; i++) ids[i] = i;
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(ids, 1));
+    geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
+    this.points = new THREE.Points(geo, airSplatMat); this.points.frustumCulled = false;
+    // pollen: 64 x 64 specks, ping-pong
+    const pop = { type: SIM_TYPE, format: THREE.RGBAFormat, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, depthBuffer: false };
+    this.pol = [0, 1].map(() => new THREE.WebGLRenderTarget(64, 64, pop)); this.polcur = 0;
+    const pid = new Float32Array(4096); for (let i = 0; i < 4096; i++) pid[i] = i;
+    const pgeo = new THREE.BufferGeometry(); pgeo.setAttribute('position', new THREE.BufferAttribute(pid, 1));
+    pgeo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
+    this.pollen = new THREE.Points(pgeo, pollenDrawMat); this.pollen.frustumCulled = false; this.pollen.renderOrder = 5;
+    scene.add(this.pollen);
+    this.clear();
+  }
+  uniforms() {
+    airU.uAirMin.value.set(-this.ext, -this.ext); airU.uAirSize.value = this.size; airU.uAirN.value = this.N;
+    airCommon.uCell.value = this.cell;
+  }
+  clear() {
+    for (const t of [...this.vel, ...this.p, this.div, this.dep, ...this.pol]) { renderer.setRenderTarget(t); renderer.clear(true, false, false); }
+    renderer.setRenderTarget(null);
+    this.bind();
+  }
+  bind() { airU.uAirTex.value = this.vel[this.vcur].texture; pollenDrawMat.uniforms.uPollen.value = this.pol[this.polcur].texture; }
+  // every blade's drag force, summed into the cell above its root
+  deposit(qTex) {
+    airSplatUniforms.uQTex.value = qTex;
+    renderer.setRenderTarget(this.dep); renderer.clear(true, false, false);
+    splatScene.add(this.points); renderer.render(splatScene, simCam); splatScene.remove(this.points);
+  }
+  step(dt, stepN) {
+    airCommon.uDtAir.value = dt;
+    const v = this.vel;
+    advectU.uVel.value = v[this.vcur].texture; runPass(advectMat, v[1 - this.vcur]);
+    airForceU.uVel.value = v[1 - this.vcur].texture; airForceU.uDeposit.value = this.dep.texture; runPass(airForceMat, v[this.vcur]);
+    divU.uVel.value = v[this.vcur].texture; runPass(divMat, this.div);
+    jacobiU.uDiv.value = this.div.texture;
+    for (let k = 0; k < JACOBI_SWEEPS; k++) { jacobiU.uP.value = this.p[this.pcur].texture; runPass(jacobiMat, this.p[1 - this.pcur]); this.pcur = 1 - this.pcur; }
+    projectU.uVel.value = v[this.vcur].texture; projectU.uP.value = this.p[this.pcur].texture; runPass(projectMat, v[1 - this.vcur]);
+    this.vcur = 1 - this.vcur;
+    this.bind();
+    pollenU.uPollen.value = this.pol[this.polcur].texture; pollenU.uStepN.value = stepN;
+    runPass(pollenMat, this.pol[1 - this.polcur]); this.polcur = 1 - this.polcur;
+    this.bind();
+    renderer.setRenderTarget(null);
+  }
+  // mean wind speed in the grass, over the field's cells (m/s)
+  meanSpeed(radius) {
+    const n = this.N * this.N * 4, half = AIR_TYPE === THREE.HalfFloatType;
+    const buf = half ? new Uint16Array(n) : new Float32Array(n);
+    renderer.readRenderTargetPixels(this.vel[this.vcur], 0, 0, this.N, this.N, buf);
+    renderer.setRenderTarget(null);
+    const f = half ? (x) => THREE.DataUtils.fromHalfFloat(x) : (x) => x;
+    let sum = 0, cnt = 0;
+    for (let j = 0; j < this.N; j++) for (let i = 0; i < this.N; i++) {
+      const x = -this.ext + (i + 0.5) * this.cell, z = -this.ext + (j + 0.5) * this.cell;
+      if (Math.hypot(x, z) > radius) continue;
+      const k = 4 * (j * this.N + i); sum += Math.hypot(f(buf[k]), f(buf[k + 1])); cnt++;
+    }
+    return cnt ? sum / cnt : 0;
+  }
+  dispose() {
+    for (const t of [...this.vel, ...this.p, this.div, this.dep, ...this.pol]) t.dispose();
+    this.points.geometry.dispose(); scene.remove(this.pollen); this.pollen.geometry.dispose();
+  }
+}
+
+const PEEK_FS = HEADER + `
+uniform sampler2D uA, uB;
+uniform vec2 uAt;
+out vec4 outC;
+void main() { ivec2 p = ivec2(uAt); outC = gl_FragCoord.x < 1.0 ? texelFetch(uA, p, 0) : texelFetch(uB, p, 0); }
+`;
+const peekUniforms = { uA: { value: null }, uB: { value: null }, uAt: { value: new THREE.Vector2() } };
+const peekMat = passMat(PEEK_FS, peekUniforms);
+const peekRT = new THREE.WebGLRenderTarget(2, 1, { type: SIM_TYPE, format: THREE.RGBAFormat, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, depthBuffer: false });
+
+// The crowding grid for a stage: cells about two strand spacings wide.
+function gridFor(cfg, mode) {
+  if (cfg.n < 2) return null; // one strand has nothing to touch
+  let min, cell, n, tilesX, mean;
+  if (mode === 'grass') {
+    const ext = cfg.half + cfg.len * 1.4, spacing = (2 * cfg.half) / Math.sqrt(cfg.n);
+    const N = Math.min(512, Math.max(8, Math.round(ext / spacing)));
+    const c = (2 * ext) / N, Ny = 4, cy = (cfg.len * 1.4) / Ny;
+    min = [-ext, 0, -ext]; cell = [c, cy, c]; n = [N, Ny, N]; tilesX = 4;
+    mean = (2 * cfg.n) / (Ny * Math.PI * cfg.half * cfg.half / (c * c)); // points per cell, if spread evenly
+  } else {
+    const ext = 1 + cfg.len * 1.25, N = cfg.n >= 10000 ? 64 : 32, c = (2 * ext) / N;
+    min = [-ext, -ext, -ext]; cell = [c, c, c]; n = [N, N, N]; tilesX = 8;
+    const r = 1 + 0.75 * cfg.len;
+    mean = cfg.n * c * c / (4 * Math.PI * r * r);
+  }
+  const W = n[0] * tilesX, H = n[2] * Math.ceil(n[1] / tilesX);
+  return { min, cell, n, tilesX, W, H, mean, eps: 1.5, ref: Math.max(1, mean) };
+}
+
+function strandGeometry(count, segs) {
+  const geo = new THREE.InstancedBufferGeometry();
+  const rows = segs + 1;
+  const aT = new Float32Array(rows * 2);
+  const aSide = new Float32Array(rows * 2);
+  const pos = new Float32Array(rows * 2 * 3);
+  for (let r = 0; r < rows; r++) {
+    const t = r / segs;
+    aT[2 * r] = t; aT[2 * r + 1] = t;
+    aSide[2 * r] = -1; aSide[2 * r + 1] = 1;
+  }
+  const idx = [];
+  for (let s = 0; s < segs; s++) {
+    const a = 2 * s, b = a + 1, c = a + 2, d = a + 3;
+    idx.push(a, b, c, b, d, c);
+  }
+  geo.setIndex(idx);
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('aT', new THREE.BufferAttribute(aT, 1));
+  geo.setAttribute('aSide', new THREE.BufferAttribute(aSide, 1));
+  const ids = new Float32Array(count);
+  for (let i = 0; i < count; i++) ids[i] = i;
+  geo.setAttribute('aIdx', new THREE.InstancedBufferAttribute(ids, 1));
+  geo.instanceCount = count;
+  return geo;
+}
+
+/* ---------------------------------------------------------------- stages */
+const STAGES = {
+  grass: [
+    { n: 1, segs: 14, half: 0, len: 0.55, width: 0.13, ringR: 0.24, tube: 0.012, ao: 0.85, fog: [3.5, 9], tagWiden: 1,
+      cam: { d: 1.05, phi: 0.18, ty: 0.3 }, cap: 'One blade. Two springy joints pull it back up.' },
+    { n: 100, segs: 10, half: 0.32, len: 0.4, width: 0.05, ringR: 0.3, ao: 0.55, fog: [3.5, 9], tagWiden: 2.5,
+      cam: { d: 1.35, phi: 0.36, ty: 0.16 }, cap: 'A tuft. Same rule, one hundred times over. Blades shoved together shove back.' },
+    { n: 10000, segs: 6, half: 3.0, len: 0.34, width: 0.036, ringR: 0.85, ao: 0.4, fog: [10, 26], tagWiden: 3,
+      cam: { d: 6.5, phi: 0.42, ty: 0.1 }, cap: 'A lawn. Watch the shove spread past the ring.' },
+    { n: 1000000, segs: 3, half: 30, len: 0.34, width: 0.05, ringR: 3.0, ao: 0.32, fog: [30, 95], tagWiden: 6,
+      cam: { d: 34, phi: 0.3, ty: 0 }, cap: 'A field. A million blades, each solved 120 times a second; the ones under the ring push it back.' },
+  ],
+  hair: [
+    { n: 1, segs: 24, len: 0.9, width: 0.03, ringR: 1.5, ao: 0.9, fog: [8, 16], tagWiden: 1,
+      cam: { d: 3.1, phi: 0.25, ty: 0.15 }, cap: 'One hair. Gravity drags it down; two joints spring back.' },
+    { n: 100, segs: 12, len: 0.75, width: 0.018, ringR: 1.42, ao: 0.75, fog: [8, 16], tagWiden: 2.5,
+      cam: { d: 3.6, phi: 0.3, ty: 0 }, cap: 'A sparse fuzz. Watch them sag where gravity runs sideways.' },
+    { n: 10000, segs: 6, len: 0.62, width: 0.008, ringR: 1.34, ao: 0.45, fog: [8, 16], tagWiden: 4,
+      cam: { d: 4.1, phi: 0.3, ty: 0 }, cap: "A hairy ball. The ring's push field leaves a wake." },
+    { n: 1000000, segs: 3, len: 0.6, width: 0.003, ringR: 1.34, ao: 0.36, fog: [8, 16], tagWiden: 9,
+      cam: { d: 4.1, phi: 0.3, ty: 0 }, cap: "One million hairs. Together they push back hard enough to slow the ring. Pluck one to find a single hair." },
+  ],
+};
+
+// Physics settings for each scene. kj: the spring at each joint, per unit mass (m2/s2).
+// mass: one strand (kg). ringKgPerM: the ring's mass per metre of hoop. Model values, assumed.
+const PHYS = {
+  // windU0: the breeze above the grass, m/s. dragK = rho Cd width / (2 m) with a blade 5 mm wide,
+  // Cd 1.2, 0.5 g: 7.2 per m2, so a blade's drag per unit mass is 7.2 x L x |u| u.
+  grass: { kj: 3.03, wind: 2.3, windU0: 1.1, dragK: 7.2, tauMix: 0.8, ringStir: 3, push: 22, mass: 0.0005, contactK: 8, ringKgPerM: 1.0, motorT: 0.4 },
+  // Real Earth gravity; kj gives a hair 60 cm long a tip lean of about 0.6 when it sticks out sideways.
+  hair: { kj: 9.8, push: 57, mass: 0.000003, contactK: 20, ringKgPerM: 1.0, motorT: 0.4 },
+};
+// The ring's path in JavaScript too, for the readouts (the chip uses the same formulas).
+function ringPoseJS(tau) {
+  const cfg = world.cfg, a = shared.uAmp.value;
+  if (world.mode === 'grass') {
+    const C = [a * Math.sin(0.45 * tau), shared.uRingY.value, a * 0.35 * Math.sin(0.9 * tau)];
+    const v = [a * 0.45 * Math.cos(0.45 * tau), a * 0.35 * 0.9 * Math.cos(0.9 * tau)], sp = Math.hypot(...v) || 1e-6;
+    return { C, A: [-v[1] / sp, 0, v[0] / sp] };
+  }
+  return { C: [0, 0, 0], A: norm3([Math.sin(tau * 0.6), 0.55 * Math.cos(tau * 0.37), Math.cos(tau * 0.6)]) };
+}
+function ringSpeed2(tau) { // mean square speed of the ring's points per unit tau
+  let v2 = 0;
+  const pt = (t, ang) => {
+    const { C, A } = ringPoseJS(t), up = Math.abs(A[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0];
+    const U = norm3(cross3(A, up)), V = cross3(A, U), R = shared.uRingR.value;
+    return [0, 1, 2].map((k) => C[k] + (U[k] * Math.cos(ang) + V[k] * Math.sin(ang)) * R);
+  };
+  for (let k = 0; k < 16; k++) {
+    const ang = (2 * Math.PI * k) / 16, p0 = pt(tau, ang), p1 = pt(tau + 1e-3, ang);
+    v2 += ((p1[0] - p0[0]) ** 2 + (p1[1] - p0[1]) ** 2 + (p1[2] - p0[2]) ** 2) * 1e6 / 16;
+  }
+  return v2;
+}
+
+const world = { mode: 'grass', step: 0, sim: null, strands: null, ring: null, halo: null, ground: null, ball: null, cfg: null };
+const groundMat = surfaceMaterial([0.30, 0.22, 0.16]);
+const ballMat = surfaceMaterial([0.16, 0.06, 0.13]);
+const ringMat = new THREE.RawShaderMaterial({ glslVersion: THREE.GLSL3, vertexShader: RING_VS, fragmentShader: RING_MESH_FS,
+  uniforms: { ...shared, uColor: { value: new THREE.Color(0xbff8ff) }, uAlpha: { value: 1 } } });
+const haloMat = new THREE.RawShaderMaterial({ glslVersion: THREE.GLSL3, vertexShader: RING_VS, fragmentShader: RING_MESH_FS,
+  uniforms: { ...shared, uColor: { value: new THREE.Color(0x8ff3ff) }, uAlpha: { value: 0.1 } },
+  transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
+
+function disposeMesh(m) { if (!m) return; scene.remove(m); m.geometry.dispose(); }
+
+function setStage(mode, step, opts = {}) {
+  const cfg = STAGES[mode][step];
+  const prev = world.cfg, sameMode = world.mode === mode;
+  world.mode = mode; world.step = step; world.cfg = cfg;
+  document.body.classList.toggle('hair', mode === 'hair');
+
+  if (world.sim) world.sim.dispose();
+  const g = gridFor(cfg, mode);
+  const airSpec = mode === 'grass' ? { ext: ((cfg.half || 0) + cfg.len) * 1.3, N: 128 } : null;
+  world.sim = new Sim(cfg.n, g, airSpec);
+  disposeMesh(world.strands); disposeMesh(world.ring); disposeMesh(world.halo); disposeMesh(world.ground); disposeMesh(world.ball);
+
+  const isGrass = mode === 'grass';
+  shared.uMode.value = isGrass ? 0 : 1;
+  shared.uCount.value = cfg.n;
+  shared.uFieldHalf.value = cfg.half || 0;
+  shared.uLen.value = cfg.len;
+  shared.uBallR.value = 1;
+  shared.uTexSize.value = world.sim.size;
+  shared.uRingR.value = cfg.ringR;
+  shared.uFogNear.value = cfg.fog[0];
+  shared.uFogFar.value = cfg.fog[1];
+  shared.uFogColor.value.set(...(isGrass ? [0.36, 0.28, 0.42] : [0.09, 0.07, 0.17]));
+  shared.uRingColor.value.set(...(isGrass ? [0.55, 0.95, 1.0] : [1.0, 0.86, 0.52]));
+  ringMat.uniforms.uColor.value.set(isGrass ? 0xbff8ff : 0xffe7b0);
+  haloMat.uniforms.uColor.value.set(isGrass ? 0x8ff3ff : 0xffd27a);
+
+  const phys = PHYS[mode];
+  simUniforms.uRingInf.value = isGrass ? cfg.ringR * 0.55 + cfg.len * 0.25 : 0.36;
+  simUniforms.uRingStr.value = phys.push;
+  simUniforms.uKj.value = phys.kj;
+  simUniforms.uWind.value = phys.wind || 0;
+  airU.uAirOn.value = isGrass ? 1 : 0;
+  if (!isGrass) airU.uAirTex.value = null; // no air around the hairball
+  if (isGrass) {
+    const a = world.sim.air; a.uniforms();
+    airU.uWindU0.value = phys.windU0; simUniforms.uDragK.value = phys.dragK;
+    airForceU.uTauMix.value = phys.tauMix; airForceU.uRingStir.value = phys.ringStir;
+    airForceU.uCanopyH.value = cfg.len * 1.4;
+    jacobiU.uKappa.value = 1 / ((cfg.len * 1.4) ** 2);
+    airForceU.uAirMassCell.value = 1.2 * a.cell * a.cell * cfg.len * 1.4; // kg of air in a cell of the grass layer
+    pollenDrawMat.uniforms.uPollenSize.value = cfg.n >= 1000000 ? 2.5 : cfg.n >= 10000 ? 3 : 4;
+  }
+  simUniforms.uMassStrand.value = phys.mass;
+  simUniforms.uContactK.value = phys.contactK;
+  simUniforms.uContactOn.value = g ? 1 : 0;
+  simUniforms.uCouple.value = COUPLE_OK ? 1 : 0;
+  if (g) {
+    for (const [k, v] of [['uGridMin', g.min], ['uGridCell', g.cell], ['uGridN', g.n]]) grid[k].value.set(...v);
+    grid.uAtlas.value.set(g.W, g.H); grid.uTilesX.value = g.tilesX;
+    crowdUniforms.uRef.value = g.ref;
+  }
+  // the ring: its path, its mass and its motor
+  const amp = Math.max((cfg.half || 0) * 0.65, 0.55);
+  shared.uAmp.value = amp;
+  shared.uRingY.value = cfg.ringR * 0.92;
+  const tauFree = isGrass ? Math.min(Math.max(5 / (0.45 * amp), 0.2), 1.5) : 0.9;
+  ringSimUniforms.uTauFree.value = tauFree;
+  airForceU.uTauFree.value = tauFree;
+  ringSimUniforms.uRingMass.value = phys.ringKgPerM * 2 * Math.PI * cfg.ringR;
+  ringSimUniforms.uMotorT.value = phys.motorT;
+  world.sim.setRing(tauFree);
+  if (g) {
+    // Rest counts. Hair first settles 2 s under gravity (ring and touching off, out of sight),
+    // because it sags a long way; grass rests straight. The run then starts from that pose at t = 0.
+    const ringWas = shared.uRingOn.value;
+    shared.uRingOn.value = 0; simUniforms.uContactOn.value = 0; simUniforms.uTime.value = 0;
+    if (!isGrass) for (let k = 0; k < 240; k++) world.sim.step();
+    world.sim.snapRest();
+    shared.uRingOn.value = ringWas; simUniforms.uContactOn.value = 1;
+    world.sim.setRing(tauFree);
+  }
+  simUniforms.uHandR.value = isGrass ? Math.max(0.14, (cfg.half || 0) * 0.06 + 0.12) : 0.42;
+  strandUniforms.uWidth.value = cfg.width;
+  strandUniforms.uAO.value = cfg.ao;
+  strandUniforms.uTagWiden.value = cfg.tagWiden;
+  clearPluck();
+
+  world.strands = new THREE.Mesh(strandGeometry(cfg.n, cfg.segs), strandMat);
+  world.strands.frustumCulled = false;
+  scene.add(world.strands);
+
+  const tube = cfg.tube || (isGrass ? cfg.ringR * 0.085 : 0.035);
+  world.ring = new THREE.Mesh(new THREE.TorusGeometry(cfg.ringR, tube, 20, 160), ringMat);
+  world.halo = new THREE.Mesh(new THREE.TorusGeometry(cfg.ringR, tube * 3.4, 16, 160), haloMat);
+  world.ring.visible = world.halo.visible = shared.uRingOn.value > 0.5;
+  scene.add(world.ring, world.halo);
+
+  if (isGrass) {
+    const rad = Math.max(cfg.fog[1] * 1.3, (cfg.half || 0) * 1.9 + 3);
+    world.ground = new THREE.Mesh(new THREE.CircleGeometry(rad, 96), groundMat);
+    world.ground.rotation.x = -Math.PI / 2;
+    world.ground.position.y = -0.002;
+    scene.add(world.ground);
+  } else {
+    world.ball = new THREE.Mesh(new THREE.SphereGeometry(0.995, 96, 64), ballMat);
+    scene.add(world.ball);
+  }
+
+  // A fresh clock and a fresh field on every stage, so the same stage always plays the same way.
+  clock.sim = 0; clock.acc = 0; clock.stepN = 0;
+  world.ring.frustumCulled = false; world.halo.frustumCulled = false;
+  ringLive.speed = 1; ringLive.force = 0;
+
+  // Camera: keep the angle and zoom someone picked; only the scale follows the new stage.
+  if (opts.keepView) { /* replay: leave the camera exactly where it is */ }
+  else if (view.userMoved && sameMode && prev) {
+    view.goal = { d: view.d * cfg.cam.d / prev.cam.d, phi: view.phi, ty: cfg.cam.ty };
+  } else {
+    view.goal = { d: cfg.cam.d, phi: cfg.cam.phi, ty: cfg.cam.ty };
+  }
+  if (opts.snap && view.goal) { Object.assign(view, view.goal); view.goal = null; }
+  setPixelRatio(cfg.n >= 1000000 ? Math.min(window.devicePixelRatio, 1.25) : Math.min(window.devicePixelRatio, 2));
+  lag.time = 0;
+
+  updateReadout(cfg, mode);
+  renderHow();
+  document.querySelectorAll('[data-step]').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.step) === step)));
+  $('sceneGrass').setAttribute('aria-pressed', String(isGrass));
+  $('sceneHair').setAttribute('aria-pressed', String(!isGrass));
+  $('forceBtn').textContent = isGrass ? 'Wind' : 'Gravity';
+}
+
+/* ---------------------------------------------------------------- the ring */
+// The ring moves on the graphics chip; this is what the readouts last read back from it.
+const ringLive = { speed: 1, force: 0 };
+
+/* ---------------------------------------------------------------- camera */
+const view = { theta: 0.7, phi: 0.18, d: 1.05, ty: 0.3, goal: null, spin: false, userMoved: false };
+function setSpin(on) {
+  view.spin = on;
+  $('spinBtn').setAttribute('aria-pressed', String(on));
+}
+function resetView() {
+  const c = world.cfg.cam;
+  view.userMoved = false;
+  view.theta = 0.7;
+  view.goal = { d: c.d, phi: c.phi, ty: c.ty };
+}
+function applyView(dt) {
+  if (view.goal) {
+    const k = Math.min(1, dt * 2.0);
+    view.d += (view.goal.d - view.d) * k;
+    view.phi += (view.goal.phi - view.phi) * k;
+    view.ty += (view.goal.ty - view.ty) * k;
+    if (Math.abs(view.goal.d - view.d) < 0.002 * view.goal.d && Math.abs(view.goal.phi - view.phi) < 0.001) view.goal = null;
+  }
+  if (view.spin) view.theta += dt * 0.07;
+  // A portrait screen sees less sideways, so the camera backs off to keep the same width in view.
+  const D = view.d * Math.min(2.2, Math.max(1, 1 / camera.aspect));
+  const cp = Math.cos(view.phi);
+  camera.position.set(D * cp * Math.sin(view.theta), view.ty + D * Math.sin(view.phi), D * cp * Math.cos(view.theta));
+  camera.lookAt(0, view.ty, 0);
+  shared.uCamPos.value.copy(camera.position);
+}
+
+/* ---------------------------------------------------------------- input */
+const pointers = new Map();
+let pinchStart = 0, pinchD = 0, pushMode = false;
+const ray = new THREE.Raycaster();
+const ndc = new THREE.Vector2();
+
+function handAt(e) {
+  const r = canvas.getBoundingClientRect();
+  ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(ndc, camera);
+  const o = ray.ray.origin, d = ray.ray.direction;
+  if (world.mode === 'grass') {
+    const h = world.cfg.len * 0.5;
+    if (Math.abs(d.y) < 1e-4) return null;
+    const t = (h - o.y) / d.y;
+    return t > 0 ? o.clone().addScaledVector(d, t) : null;
+  }
+  const R = 1 + world.cfg.len * 0.5;
+  const b = o.dot(d), c = o.dot(o) - R * R, disc = b * b - c;
+  if (disc < 0) return null;
+  const t = -b - Math.sqrt(disc);
+  return t > 0 ? o.clone().addScaledVector(d, t) : null;
+}
+
+canvas.addEventListener('pointerdown', (e) => {
+  canvas.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pointers.size === 2) {
+    const [a, b] = [...pointers.values()];
+    pinchStart = Math.hypot(a.x - b.x, a.y - b.y); pinchD = view.d;
+    simUniforms.uHandOn.value = 0;
+  } else if (pushMode) {
+    const p = handAt(e);
+    if (p) { simUniforms.uHandP.value.copy(p); simUniforms.uHandOn.value = 1; }
+  }
+});
+canvas.addEventListener('pointermove', (e) => {
+  const prev = pointers.get(e.pointerId);
+  if (!prev) {
+    if (pushMode && e.pointerType === 'mouse') {
+      const p = handAt(e);
+      if (p) { simUniforms.uHandP.value.copy(p); simUniforms.uHandOn.value = 1; }
+    }
+    return;
+  }
+  const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pointers.size === 2) {
+    const [a, b] = [...pointers.values()];
+    const dist = Math.hypot(a.x - b.x, a.y - b.y);
+    if (pinchStart > 0) { view.d = clampD(pinchD * pinchStart / dist); view.goal = null; view.userMoved = true; }
+    return;
+  }
+  if (pushMode) {
+    const p = handAt(e);
+    if (p) { simUniforms.uHandP.value.copy(p); simUniforms.uHandOn.value = 1; }
+    return;
+  }
+  if (dx === 0 && dy === 0) return;
+  // Looking around is the visitor's choice: the tour and the spin give way to it.
+  stopTour(); setSpin(false);
+  view.theta -= dx * 0.006;
+  view.phi = Math.min(1.45, Math.max(0.04, view.phi + dy * 0.004));
+  view.goal = null; view.userMoved = true;
+});
+function endPointer(e) {
+  pointers.delete(e.pointerId);
+  if (pointers.size < 2) pinchStart = 0;
+  if (pointers.size === 0 && !(pushMode && e.pointerType === 'mouse')) simUniforms.uHandOn.value = 0;
+}
+canvas.addEventListener('pointerup', endPointer);
+canvas.addEventListener('pointercancel', endPointer);
+canvas.addEventListener('pointerleave', () => { if (pointers.size === 0) simUniforms.uHandOn.value = 0; });
+canvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  view.goal = null; view.userMoved = true;
+  view.d = clampD(view.d * Math.exp(e.deltaY * 0.0012));
+}, { passive: false });
+function clampD(d) {
+  const base = world.cfg.cam.d;
+  return Math.min(base * 4, Math.max(base * 0.18, d));
+}
+
+/* ---------------------------------------------------------------- readout */
+const fmt = (n) => n.toLocaleString('en-US');
+const plural = (n, one, many) => `${fmt(n)} ${n === 1 ? one : many}`;
+
+// The true count, straight away. No counting up through numbers that are not on screen.
+function updateReadout(cfg, mode) {
+  $('count').textContent = fmt(cfg.n);
+  const unit = mode === 'grass' ? (cfg.n === 1 ? 'blade of grass' : 'blades of grass') : (cfg.n === 1 ? 'hair' : 'hairs');
+  $('unit').textContent = unit;
+  $('caption').textContent = cfg.cap;
+}
+
+/* ---------------------------------------------------------------- one strand, on the CPU */
+// The same hash and root placement as the shader's rootOf, so the page knows where strand
+// number i grows and how long it is. Used to tag, pluck and measure one strand.
+function hashu(x) {
+  x >>>= 0;
+  x ^= x >>> 16; x = Math.imul(x, 0x7feb352d) >>> 0;
+  x ^= x >>> 15; x = Math.imul(x, 0x846ca68b) >>> 0;
+  x ^= x >>> 16; return x >>> 0;
+}
+const h1 = (i, salt) => hashu((Math.imul(i, 2654435761) + Math.imul(salt, 374761393)) >>> 0) / 4294967295;
+function norm3(v) { const l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; }
+function cross3(a, b) { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
+
+function rootOfCPU(i) {
+  const cfg = world.cfg, n = cfg.n, len = cfg.len, d = h1(i, 4);
+  if (world.mode === 'grass') {
+    const a = h1(i, 1), b = h1(i, 2), g = Math.ceil(Math.sqrt(n));
+    const sx = ((i % g + a) / g) * 2 - 1, sy = ((Math.floor(i / g) + b) / g) * 2 - 1;
+    let rr = 0, ang = 0;
+    if (Math.abs(sx) > Math.abs(sy)) { rr = sx; ang = (Math.PI / 4) * (sy / sx); }
+    else if (Math.abs(sy) > 1e-6) { rr = sy; ang = Math.PI / 2 - (Math.PI / 4) * (sx / sy); }
+    let x = rr * Math.cos(ang) * (cfg.half || 0), z = rr * Math.sin(ang) * (cfg.half || 0);
+    if (n < 1.5) { x = 0; z = 0; }
+    const N = norm3([(h1(i, 5) - 0.5) * 0.3, 1, (h1(i, 6) - 0.5) * 0.3]);
+    return { P: [x, 0, z], N, T1: [1, 0, 0], T2: [0, 0, 1], L: len * (0.65 + 0.7 * d) };
+  }
+  const y = 1 - 2 * (i + 0.5) / n, rr = Math.sqrt(Math.max(0, 1 - y * y));
+  const phi = (Math.imul(i, 1640531527) >>> 0) * (2 * Math.PI / 4294967296);
+  const N = n < 1.5 ? norm3([0.55, 0.7, 0.45]) : [Math.cos(phi) * rr, y, Math.sin(phi) * rr];
+  const up = Math.abs(N[1]) < 0.95 ? [0, 1, 0] : [1, 0, 0];
+  const T1 = norm3(cross3(up, N)), T2 = cross3(N, T1);
+  return { P: N.slice(), N, T1, T2, L: len * (0.8 + 0.4 * d) };
+}
+
+// The strand to pluck: the middle of the lawn, or a hair on the right side of the ball, side
+// on to the camera, so its swing shows across the screen instead of straight at you.
+function pickStrand() {
+  const n = world.cfg.n;
+  if (n === 1) return 0;
+  if (world.mode === 'grass') {
+    const g = Math.ceil(Math.sqrt(n)), h = Math.floor(g / 2);
+    return Math.min(n - 1, h * g + h);
+  }
+  const toCam = norm3([camera.position.x, camera.position.y, camera.position.z]);
+  const right = norm3(cross3([0, 1, 0], toCam));
+  const c = norm3([toCam[0] * 0.5 + right[0] * 0.87, toCam[1] * 0.5 + 0.12, toCam[2] * 0.5 + right[2] * 0.87]);
+  const i0 = Math.round((1 - c[1]) * n / 2 - 0.5), win = Math.ceil(2 * Math.sqrt(n)) + 20;
+  let best = 0, bestDot = -2;
+  for (let i = Math.max(0, i0 - win); i <= Math.min(n - 1, i0 + win); i++) {
+    const N = rootOfCPU(i).N, dot = N[0] * c[0] + N[1] * c[1] + N[2] * c[2];
+    if (dot > bestDot) { bestDot = dot; best = i; }
+  }
+  return best;
+}
+
+/* ---------------------------------------------------------------- pluck and measure */
+// Pull one strand into its first mode shape (upper segment leaning 1.414 times the lower), let go,
+// and time the tip's swing against the formula for that mode:
+// omega1 = sqrt(0.343 kj) / l, period = 2 pi / (omega1 sqrt(1 - zeta^2)), zeta = 0.20 by construction.
+const PLUCK_LEAN = 0.8;
+const pluck = { idx: -1, axis: 0, root: null, k: 0, c: 0, zeta: 0, period: 0, measuring: false, lastX: null, lastT: 0, cross: [], peaks: [], peak: 0, t0: 0, done: false };
+const tipBuf = new Float32Array(8);
+const marker = new THREE.Points(
+  new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(new Float32Array(3), 3)),
+  new THREE.PointsMaterial({ size: 11, sizeAttenuation: false, color: 0xf2ff73, depthTest: false, transparent: true }));
+marker.frustumCulled = false; marker.renderOrder = 10; marker.visible = false;
+scene.add(marker);
+
+function clearPluck() {
+  pluck.idx = -1; pluck.measuring = false; pluck.done = false;
+  strandUniforms.uTag.value = -1;
+  simUniforms.uPluckOn.value = 0;
+  marker.visible = false;
+  $('pluckOut').hidden = true;
+}
+
+function startPluck() {
+  stopTour();
+  const i = pickStrand(), r = rootOfCPU(i), phys = PHYS[world.mode], l = r.L / 2;
+  const om1 = Math.sqrt(((3 - Math.sqrt(8)) * 2 * phys.kj)) / l;
+  Object.assign(pluck, {
+    idx: i, root: r, k: phys.kj, om1, measuring: true, done: false,
+    lastX: null, lastT: 0, cross: [], peaks: [], peak: PLUCK_LEAN, t0: clock.sim,
+  });
+  pluck.zeta = 0.2;
+  pluck.period = 2 * Math.PI / (om1 * Math.sqrt(1 - pluck.zeta * pluck.zeta));
+  // A clean swing: no wind, no gravity, no ring, no hand. The strand alone with its spring.
+  setForce(false); setRing(false); simUniforms.uHandOn.value = 0; simUniforms.uContactOn.value = 0;
+  if (world.sim.air) world.sim.air.clear(); // still air: the breeze is off, and what was moving stops
+  strandUniforms.uTag.value = i;
+  simUniforms.uPluckIdx.value = i;
+  // Grass leans along x, which the camera sees side on. A hair on the ball's side swings along
+  // its second tangent, which runs up and down the screen.
+  pluck.axis = world.mode === 'grass' ? 0 : 1;
+  const lo = PLUCK_LEAN / Math.SQRT2; // first mode: the lower segment leans 1 / 1.414 of the upper
+  simUniforms.uPluckTheta.value.set(pluck.axis === 0 ? lo : 0, pluck.axis === 1 ? lo : 0, pluck.axis === 0 ? PLUCK_LEAN : 0, pluck.axis === 1 ? PLUCK_LEAN : 0);
+  simUniforms.uPluckOn.value = 1; // applied on the next physics step, then switched off
+  marker.visible = true;
+  if (paused()) setPaused(false);
+  showPluck();
+}
+
+function strandName() {
+  const r = pluck.root;
+  return `${world.mode === 'grass' ? 'Blade' : 'Hair'} #${fmt(pluck.idx)} (${(r.L * 100).toFixed(0)} cm long)`;
+}
+
+function showPluck() {
+  const el = $('pluckOut'), p = pluck;
+  el.hidden = false;
+  const want = `formula ${p.period.toFixed(2)} s`;
+  if (SIM_TYPE !== THREE.FloatType) {
+    el.textContent = `${strandName()} plucked. This device keeps half precision numbers, so the page cannot read the swing back to time it. By the formula: one swing every ${p.period.toFixed(2)} s.`;
+    return;
+  }
+  if (p.cross.length < 3) {
+    el.textContent = `${strandName()} plucked. Wind, gravity, the ring and touching are off and the air is still, so it swings on its springs (and the air's drag) alone. Timing it...`;
+    return;
+  }
+  const n = p.cross.length;
+  const T = 2 * (p.cross[n - 1] - p.cross[0]) / (n - 1);
+  // Each half swing keeps the same share of the last one. That share gives the damping ratio.
+  const m = p.peaks.length - 1;
+  const half = Math.pow(p.peaks[m] / p.peaks[0], 1 / m);
+  const delta = -2 * Math.log(half);
+  const zeta = delta / Math.sqrt(4 * Math.PI * Math.PI + delta * delta);
+  const gap = Math.abs(T - p.period) / p.period * 100;
+  el.textContent = `${strandName()}: one swing every ${T.toFixed(2)} s measured, ${want}` +
+    (gap >= 0.05 && gap < 3 ? ` (${gap.toFixed(1)}% apart: that is the error of moving time in 1/120 s jumps). ` : '. ') +
+    (world.sim.air
+      ? `It dies away faster than its joints alone would let it (an average damping ratio of ${zeta.toFixed(2)} against ${p.zeta.toFixed(2)}), because air drag grows with speed: big swings lose more. `
+      : `Damping ratio ${zeta.toFixed(2)} measured, ${p.zeta.toFixed(2)} set. `) +
+    (p.done ? 'Done. Turn wind and the ring back on any time; touching comes back with a new stage or Replay.' : 'Still timing...');
+  pluck.measured = { period: T, zeta };
+}
+
+// Called once per drawn frame: read the plucked strand's lean back from the graphics chip.
+function trackPluck() {
+  if (pluck.idx < 0 || SIM_TYPE !== THREE.FloatType) return;
+  const s = world.sim, i = pluck.idx;
+  s.peek(i, tipBuf);
+  const r = pluck.root, l = r.L / 2, ax = tipBuf[0], az = tipBuf[1], bx = tipBuf[4], bz = tipBuf[5];
+  const lean = (x, z) => norm3([r.N[0] + r.T1[0] * x + r.T2[0] * z, r.N[1] + r.T1[1] * x + r.T2[1] * z, r.N[2] + r.T1[2] * x + r.T2[2] * z]);
+  const d1 = lean(ax, az), d2 = lean(bx, bz);
+  const pos = marker.geometry.attributes.position;
+  pos.setXYZ(0, r.P[0] + (d1[0] + d2[0]) * l, r.P[1] + (d1[1] + d2[1]) * l, r.P[2] + (d1[2] + d2[2]) * l);
+  pos.needsUpdate = true;
+  if (!pluck.measuring || simUniforms.uPluckOn.value > 0.5) return;
+  const x = pluck.axis === 1 ? bz : bx, t = clock.sim;
+  if (pluck.lastX !== null && ((pluck.lastX < 0 && x >= 0) || (pluck.lastX > 0 && x <= 0))) {
+    pluck.cross.push(pluck.lastT + (0 - pluck.lastX) * (t - pluck.lastT) / (x - pluck.lastX));
+    pluck.peaks.push(pluck.peak); pluck.peak = 0;
+    showPluck();
+  }
+  pluck.peak = Math.max(pluck.peak, Math.abs(x));
+  pluck.lastX = x; pluck.lastT = t;
+  if (pluck.cross.length >= 9 || t - pluck.t0 > 10) { pluck.measuring = false; pluck.done = true; showPluck(); }
+}
+
+/* ---------------------------------------------------------------- tour */
+// Seconds of simulated time on each stage. The tour waits while paused or slowed.
+const TOUR = [['grass', 0, 6], ['grass', 1, 7], ['grass', 2, 8], ['grass', 3, 11], ['hair', 0, 6], ['hair', 1, 7], ['hair', 2, 8], ['hair', 3, 11]];
+const tour = { on: false, i: 0, t: 0 };
+function startTour() {
+  tour.on = true; tour.i = 0; tour.t = 0;
+  setStage(TOUR[0][0], TOUR[0][1]);
+  $('tour').setAttribute('aria-pressed', 'true');
+  tourLabel();
+}
+function stopTour() {
+  if (!tour.on) return;
+  tour.on = false;
+  $('tour').textContent = 'Play the tour'; $('tour').setAttribute('aria-pressed', 'false');
+}
+function tourLabel() {
+  if (!tour.on) return;
+  const left = Math.max(0, Math.ceil(TOUR[tour.i][2] - tour.t));
+  $('tour').textContent = `Stop tour · ${tour.i + 1} of ${TOUR.length} · next in ${left} s`;
+}
+function tickTour(simDt) {
+  if (!tour.on) return;
+  tour.t += simDt;
+  if (tour.t > TOUR[tour.i][2]) {
+    tour.i = (tour.i + 1) % TOUR.length; tour.t = 0;
+    setStage(TOUR[tour.i][0], TOUR[tour.i][1]);
+  }
+  tourLabel();
+}
+
+/* ---------------------------------------------------------------- controls */
+const SPEEDS = [1, 0.5, 0.25];
+const paused = () => clock.paused;
+function setPaused(on) {
+  clock.paused = on;
+  $('pauseBtn').textContent = on ? 'Play' : 'Pause';
+  $('pauseBtn').setAttribute('aria-pressed', String(on));
+}
+function cycleSpeed() {
+  const i = (SPEEDS.indexOf(clock.speed) + 1) % SPEEDS.length;
+  clock.speed = SPEEDS[i];
+  $('speedBtn').textContent = `Speed ${clock.speed === 1 ? '1' : clock.speed === 0.5 ? '1/2' : '1/4'}x`;
+}
+function setRing(on) {
+  shared.uRingOn.value = on ? 1 : 0;
+  world.ring.visible = world.halo.visible = on;
+  $('ringBtn').setAttribute('aria-pressed', String(on));
+}
+function setForce(on) {
+  simUniforms.uForceOn.value = on ? 1 : 0;
+  $('forceBtn').setAttribute('aria-pressed', String(on));
+}
+function replay() { stopTour(); setStage(world.mode, world.step, { keepView: true }); }
+function toggleHow(force) {
+  const open = force ?? $('how').hidden;
+  $('how').hidden = !open;
+  $('howBtn').setAttribute('aria-pressed', String(open));
+}
+function pick(mode, step) { stopTour(); setStage(mode, step); }
+
+document.querySelectorAll('[data-step]').forEach((b) => b.addEventListener('click', () => pick(world.mode, Number(b.dataset.step))));
+$('sceneGrass').addEventListener('click', () => pick('grass', world.step));
+$('sceneHair').addEventListener('click', () => pick('hair', world.step));
+$('tour').addEventListener('click', () => (tour.on ? stopTour() : startTour()));
+$('ringBtn').addEventListener('click', () => setRing(shared.uRingOn.value < 0.5));
+$('forceBtn').addEventListener('click', () => setForce(simUniforms.uForceOn.value < 0.5));
+$('dragBtn').addEventListener('click', () => {
+  pushMode = !pushMode;
+  $('dragBtn').textContent = pushMode ? 'Drag: push' : 'Drag: look';
+  $('dragBtn').setAttribute('aria-pressed', String(pushMode));
+  if (!pushMode) simUniforms.uHandOn.value = 0;
+});
+$('spinBtn').addEventListener('click', () => setSpin(!view.spin));
+$('viewBtn').addEventListener('click', resetView);
+$('pauseBtn').addEventListener('click', () => setPaused(!clock.paused));
+$('stepBtn').addEventListener('click', () => { setPaused(true); clock.stepReq += 1; });
+$('speedBtn').addEventListener('click', cycleSpeed);
+$('replayBtn').addEventListener('click', replay);
+$('pluckBtn').addEventListener('click', startPluck);
+$('howBtn').addEventListener('click', () => toggleHow());
+$('howClose').addEventListener('click', () => toggleHow(false));
+
+const KEYS = {
+  ' ': () => setPaused(!clock.paused), '.': () => { setPaused(true); clock.stepReq += 1; },
+  s: cycleSpeed, r: replay, k: startPluck,
+  g: () => pick('grass', world.step), h: () => pick('hair', world.step),
+  t: () => (tour.on ? stopTour() : startTour()),
+  o: () => $('ringBtn').click(), w: () => $('forceBtn').click(), p: () => $('dragBtn').click(),
+  c: () => $('spinBtn').click(), v: resetView, i: () => toggleHow(), escape: () => toggleHow(false),
+};
+window.addEventListener('keydown', (e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.target.closest && e.target.closest('button, a') && (e.key === ' ' || e.key === 'Enter')) return;
+  const k = e.key.toLowerCase();
+  if (['1', '2', '3', '4'].includes(k)) { pick(world.mode, Number(k) - 1); return; }
+  const fn = KEYS[k];
+  if (fn) { e.preventDefault(); fn(); }
+});
+
+/* ---------------------------------------------------------------- how it works */
+function renderHow() {
+  const cfg = world.cfg, grass = world.mode === 'grass', p = PHYS[world.mode], l = cfg.len / 2;
+  const om1 = Math.sqrt(0.343 * p.kj) / l, hz = om1 / (2 * Math.PI), zeta = 0.2;
+  const period = 2 * Math.PI / (om1 * Math.sqrt(1 - zeta * zeta));
+  const keep = Math.exp(-2 * Math.PI * zeta / Math.sqrt(1 - zeta * zeta));
+  const lo = cfg.len * (grass ? 0.65 : 0.8), hi = cfg.len * (grass ? 1.35 : 1.2);
+  const thing = grass ? 'blade' : 'hair', things = grass ? 'blades' : 'hairs';
+  const g = world.sim && world.sim.grid, ringKg = ringSimUniforms.uRingMass.value;
+  $('howBody').innerHTML = `
+    <h2>How it works</h2>
+    <p>Each ${thing} is two stiff segments joined like a finger: a springy joint at the root and another in the middle, with half its mass at the middle and half at the tip. The page keeps eight numbers for every one of the ${fmt(cfg.n)} (how far each segment leans, two ways, and how fast) and your graphics chip updates all of them 120 times a second.</p>
+    <h3>The rule</h3>
+    <p>mass &times; lean acceleration = push &minus; joint springs &times; lean &minus; damping &times; lean speed, for the two segments together (a 2 by 2 system per direction).</p>
+    <dl>
+      <dt>joint spring</dt><dd>${p.kj} m&sup2;/s&sup2; per unit mass, the same at both joints; tuned for looks (a real ${thing} this size is far softer${grass ? '' : ', about a thousand times'})</dd>
+      <dt>first swing</dt><dd>${hz.toFixed(2)} swings per second for a ${(cfg.len * 100).toFixed(0)} cm ${thing}; ${period.toFixed(2)} s per swing with damping. The upper segment leans 1.41 times as far as the lower, so the tip moves 2.41 times as far sideways as the middle joint.</dd>
+      <dt>second swing</dt><dd>a quick whip 5.8 times faster, where the two segments flex against each other</dd>
+      <dt>damping ratio</dt><dd>0.20 for the first swing (each one keeps ${(keep * 100).toFixed(0)}% of the last), 0.30 for the whip; tuned, real ones ring on longer</dd>
+      <dt>${grass ? 'wind' : 'gravity'}</dt><dd>${grass ? `a breeze of ${p.windU0} m/s above the grass in gusts (0.6 to 1.4 times that); real moving air inside the grass (see Real wind)` : '9.8 m/s&sup2;, Earth\u2019s, on both the middle and the tip'}</dd>
+      <dt>lengths</dt><dd>${(lo * 100).toFixed(0)} to ${(hi * 100).toFixed(0)} cm${grass ? '' : ', on a ball 2 m across'}; shorter ones swing faster (frequency goes as 1 / length; a real ${thing} of even thickness would go as 1 / length&sup2;)</dd>
+      <dt>mass</dt><dd>${grass ? '0.5 g a blade' : '3 mg a hair, about a 60 cm human hair'} (assumed)</dd>
+      <dt>time step</dt><dd>1/120 s, always the same; up to 6 steps per drawn frame. Damping uses half the old speed and half the new, which keeps the swing time exact.</dd>
+      <dt>leans</dt><dd>small-angle maths: the lean is the tangent of the angle, so big leans are approximate, and each segment stops at a lean limit (${grass ? '73' : '67'} degrees)</dd>
+    </dl>
+    ${grass ? `<h3>Real wind</h3>
+    <p>Above the grass the breeze comes in gusts: a pattern moving at 1.3 times its speed (chosen). Inside the grass the air is simulated: one flat layer as tall as the grass, averaged over its height, on a 128 &times; 128 grid (stable fluids: the air is carried along by its own motion, and what cannot flow sideways leaves through the top of the layer). The breeze above pulls it along, catching it up in about ${p.tauMix} s (chosen).</p>
+    <p>Each blade feels drag from the air moving past it, per unit mass ${p.dragK} &times; length &times; |speed| &times; speed: a blade 5 mm wide (drawn wider so you can see it), drag coefficient 1.2, 0.5 g, air 1.2 kg/m&sup3;. Its middle feels the air in the grass; its tip reaches halfway into the faster air above. The air feels the exact opposite of every blade's drag, landing where the blade is, so grass slows the wind: the upwind edge of a lawn takes the most wind and its middle the least, picking up again toward the far edge. A blade swinging through still air feels drag too, so it settles faster than its joints alone would let it. The ring drags air along as it rolls (a one-way push: the air does not slow the ring). Pollen specks ride the air so you can see it.</p>` : ''}
+    <h3>Touching</h3>
+    <p>${g ? `Every ${crowdEvery()} steps the page counts each ${thing}'s middle and tip into a 3D grid of ${fmt(g.n[0] * g.n[1] * g.n[2])} cells, each ${(g.cell[0] * 100).toFixed(0)} cm across. Where a cell holds more than 1.5 points beyond what the same patch of field held at rest, after following that patch's drift (an even field puts about ${g.mean.toFixed(1)} in a cell), the crowd pushes outward, down its slope: ${p.contactK} m/s&sup2; times the slope of the extra count (per cell, relative to an average cell). So ${things} shoved into each other shove back and the push spreads. It is a density grid like those in film hair solvers: a push back toward the rest layout that works on crowds, not a collision between every pair, so two lone ${things} can still slip through each other, and it does not keep momentum exact.` : `One ${thing} has nothing to touch, so touching is off here.`}</p>
+    <h3>The ring gets pushed back</h3>
+    <p>The ring is a hoop of ${ringKg.toFixed(1)} kg on a motor that tries to hold its pace (it corrects any slip over ${p.motorT} s). Everything the ring's push field shoves pushes the ring back just as hard (Newton's third law). The chip adds up all ${fmt(cfg.n)} pushes every step; the motor fights back, so the ring settles at a lower speed. One ${thing} cannot slow it; see what a million do. Only the ring's push on strands comes back to the ring; your hand, the crowding and the ring's stir of the air are one-way pushes.${grass ? ' (The air and the blades do push each other both ways.)' : ''}</p>
+    <h3>What this still leaves out</h3>
+    <ul>
+      <li>No ${grass ? 'ground' : 'ball'} contact: a hard shove pins a segment against its lean limit instead.</li>
+      ${grass ? '<li>One flat layer of air: no swirls, no gusts made by the grass itself; its open top is a simple leak, not real air rising over the field; the faster air above is a pattern, not solved, and the tips\u2019 share of drag goes into the grass layer. The grid also smooths the air far more than real air would (cells up to 60 cm).</li>' : '<li>Gravity and pushes act on the hair\u2019s mass directly; there is no air around the hairball, so no drag.</li>'}
+      <li>Two joints, not a smooth bendy strand; the drawn curve passes through the root, the middle joint and the tip.</li>
+      <li>The ring's push field is a made-up soft force field, not a solid ring; the push back is the exact opposite of it.</li>
+    </ul>
+    <h3>Try it</h3>
+    <p>Press <b>Pluck one</b>. The page pulls one ${thing} into its first swing shape, lets go, times the tip and checks it against the formula: &omega; = &radic;(0.343 &times; joint spring) / half length, period = 2&pi; / (&omega; &radic;(1 &minus; 0.2&sup2;)).</p>`;
+}
+
+/* ---------------------------------------------------------------- sizing and speed */
+let pixelRatio = 1;
+function setPixelRatio(pr) { pixelRatio = pr; renderer.setPixelRatio(pr); resize(); }
+function resize() {
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+
+const lag = { time: 0 };
+let fps = 60, frames = 0, fpsClock = 0;
+
+/* ---------------------------------------------------------------- the clock */
+// Physics always moves in the same 1/120 s steps, whatever the screen's frame rate. Real time
+// (scaled by the speed setting) fills an accumulator and each full 1/120 s in it is one step.
+// If the chip falls behind, the page drops the backlog and says it is running slow, instead
+// of quietly taking bigger steps.
+const SIM_DT = 1 / 120;
+const MAX_STEPS = 6; // per drawn frame: real time holds down to 20 fps
+const STEP_FRAME = 2; // the Step button moves 2 steps, 1/60 s
+const clock = { sim: 0, acc: 0, speed: 1, paused: false, stepReq: 0, winReal: 0, winSim: 0, winCapped: false, rate: 1, stepN: 0 };
+// Recount the crowding grid every few steps, counted in steps (not frames) so replays match:
+// every 2 steps (60 times a second), every 4 at a million strands, where counting costs the most.
+const crowdEvery = () => (world.cfg.n >= 1000000 ? 4 : 2);
+
+function physicsStep() {
+  simUniforms.uTime.value = clock.sim;
+  if (simUniforms.uContactOn.value > 0.5 && clock.stepN % crowdEvery() === 0) world.sim.splat();
+  const air = world.sim.air, k = crowdEvery();
+  if (air && clock.stepN % k === 0) { air.deposit(world.sim.rt[world.sim.cur].texture[2]); air.step(k * SIM_DT, clock.stepN); }
+  world.sim.step();
+  simUniforms.uPluckOn.value = 0;
+  clock.sim += SIM_DT;
+  clock.stepN++;
+}
+
+function advance(dt) {
+  let steps = 0;
+  if (clock.stepReq > 0) {
+    clock.stepReq--;
+    for (; steps < STEP_FRAME; steps++) physicsStep();
+    return { steps, capped: false };
+  }
+  if (clock.paused) return { steps, capped: false };
+  clock.acc += dt * clock.speed;
+  while (clock.acc >= SIM_DT - 1e-9 && steps < MAX_STEPS) { physicsStep(); clock.acc -= SIM_DT; steps++; }
+  const capped = clock.acc >= SIM_DT - 1e-9;
+  if (capped) clock.acc = 0;
+  return { steps, capped };
+}
+
+/* ---------------------------------------------------------------- loop */
+let last = performance.now();
+function frame(now, manual = false) {
+  const dt = Math.min(0.1, Math.max(0, (now - last) / 1000));
+  last = now;
+
+  const simBefore = clock.sim;
+  const { capped } = advance(dt);
+  tickTour(clock.sim - simBefore);
+  applyView(dt);
+  world.sim.bind();
+  if (world.sim.air) world.sim.air.bind();
+  trackPluck();
+
+  renderer.render(scene, camera);
+
+  frames++; fpsClock += dt;
+  if (!clock.paused) { clock.winReal += dt * clock.speed; clock.winSim += clock.sim - simBefore; clock.winCapped ||= capped; }
+  if (fpsClock >= 0.5) {
+    fps = frames / fpsClock; frames = 0; fpsClock = 0;
+    clock.rate = clock.winReal > 0 ? clock.winSim / clock.winReal : 1;
+    readRing(); readWind();
+    updateStats(clock.winCapped && clock.rate < 0.97);
+    clock.winReal = 0; clock.winSim = 0; clock.winCapped = false;
+    if (world.cfg.n >= 1000000 && fps < 26) {
+      lag.time += 0.5;
+      if (lag.time >= 2 && pixelRatio > 0.75) { setPixelRatio(Math.max(0.75, pixelRatio - 0.25)); lag.time = 0; }
+    } else lag.time = 0;
+  }
+  if (!manual) requestAnimationFrame(frame);
+}
+
+// The breeze above the grass, averaged over the field right now (same formula as the chip).
+function windAboveMean(radius) {
+  const U0 = airU.uWindU0.value, d = simUniforms.uWindDir.value, t = clock.sim;
+  let sum = 0, cnt = 0;
+  for (let i = -8; i <= 8; i++) for (let j = -8; j <= 8; j++) {
+    const x = (i / 8) * radius, z = (j / 8) * radius;
+    if (Math.hypot(x, z) > radius) continue;
+    const ph = 0.45 * (x * d.x + z * d.y - 1.3 * U0 * t);
+    const gust = 0.5 + 0.5 * Math.sin(ph) * Math.sin(ph * 0.31 + 1.3 + z * 0.13);
+    sum += U0 * (0.6 + 0.8 * gust); cnt++;
+  }
+  return simUniforms.uForceOn.value > 0.5 ? sum / cnt : 0;
+}
+const windLive = { above: 0, inside: 0 };
+function readWind() {
+  const a = world.sim.air; if (!a) return;
+  const radius = Math.max(world.cfg.half || 0, 0.3);
+  windLive.inside = a.meanSpeed(radius); windLive.above = windAboveMean(radius);
+}
+// Twice a second: how fast the ring goes against its motor's pace, and how hard the strands push back.
+const ringBuf = new Float32Array(4), qBuf = new Float32Array(4);
+function readRing() {
+  if (!COUPLE_OK) return;
+  const r = world.sim.ringNow(ringBuf), q = world.sim.pushNow(qBuf);
+  ringLive.speed = r[1] / ringSimUniforms.uTauFree.value;
+  ringLive.force = -q[0] / Math.sqrt(ringSpeed2(r[0]) || 1); // newtons along the ring's motion
+  renderer.setRenderTarget(null);
+}
+function ringLine() {
+  if (shared.uRingOn.value < 0.5) return '';
+  if (!COUPLE_OK) return 'ring at its motor pace (this device cannot add up the push back)';
+  const f = ringLive.force, a = Math.abs(f);
+  const n = a < 0.0005 ? 'about 0' : a < 0.01 ? f.toFixed(4) : a < 10 ? f.toFixed(2) : f.toFixed(0);
+  const unit = world.mode === 'grass' ? 'N' : 'N (as a force at a typical point of the turning ring)';
+  return `${world.mode === 'grass' ? 'blades' : 'hairs'} push back on the ring ${n} ${unit} \u00b7 ring at ${Math.round(ringLive.speed * 100)}% of its motor pace`;
+}
+function updateStats(behind) {
+  const n = world.cfg.n;
+  const bits = [`${Math.round(fps)} fps`, plural(n, world.mode === 'grass' ? 'blade' : 'hair', world.mode === 'grass' ? 'blades' : 'hairs'), '120 physics steps a second', `t = ${clock.sim.toFixed(2)} s`];
+  if (world.sim.air) bits.push(`wind above the grass ${windLive.above.toFixed(1)} m/s, in the grass ${windLive.inside.toFixed(1)} m/s`);
+  const rl = ringLine(); if (rl) bits.push(rl);
+  if (clock.paused) bits.push('paused');
+  else if (clock.speed !== 1) bits.push(`slow motion ${clock.speed === 0.5 ? '1/2' : '1/4'}`);
+  if (behind) bits.push(`running at ${clock.rate.toFixed(2)}x real time, the chip can't keep up`);
+  if (pixelRatio < 1) bits.push(`sharpness ${pixelRatio.toFixed(2)}`);
+  $('stats').textContent = bits.join(' \u00b7 ');
+}
+
+setStage('grass', 0, { snap: true });
+resize();
+// Compile every shader now, so a broken shader shows in the console at load, not at the first frame.
+renderer.compile(scene, camera);
+for (const m of [simMat, crowdMat, pressMat, copyMat, reduceMat, ringSimMat, peekMat, advectMat, airForceMat, divMat, jacobiMat, projectMat, pollenMat]) { simQuad.material = m; renderer.compile(simScene, simCam); }
+
+// Test hook for headless checks: run N frames by hand and read a few strands' bend values back.
+window.oneToAMillion = {
+  run(n = 60) { for (let i = 0; i < n; i++) frame(last + 1000 / 60, true); return $('stats').textContent; },
+  probe(count = 4) {
+    const s = world.sim;
+    if (SIM_TYPE !== THREE.FloatType) return 'half float: probe skipped';
+    const out = this.snapshot().slice(4 * s.size * s.size); // the upper segments (B)
+    const rows = [];
+    for (let i = 0; i < Math.min(count, world.cfg.n); i++) rows.push(Array.from(out.slice(4 * i, 4 * i + 4)).map((v) => +v.toFixed(3)));
+    let finite = true, maxBend = 0, sum = 0;
+    for (let i = 0; i < world.cfg.n; i++) {
+      const bx = out[4 * i], bz = out[4 * i + 1];
+      if (!Number.isFinite(bx) || !Number.isFinite(bz)) { finite = false; break; }
+      const b = Math.hypot(bx, bz); maxBend = Math.max(maxBend, b); sum += b;
+    }
+    return { mode: world.mode, n: world.cfg.n, size: s.size, finite, maxBend: +maxBend.toFixed(3), meanBend: +(sum / world.cfg.n).toFixed(4), first: rows, programs: renderer.info.programs.length };
+  },
+  stage(mode, step) { stopTour(); setStage(mode, step, { snap: true }); return world.cfg.n; },
+  set(name, value) { simUniforms[name].value = value; return value; }, // for checks: e.g. set('uContactOn', 0)
+  // Every strand's state as one array, for comparing two runs bit for bit.
+  snapshot() {
+    const s = world.sim, n = 4 * s.size * s.size, out = new Float32Array(2 * n + 4);
+    const rt = new THREE.WebGLRenderTarget(s.size, s.size, { type: SIM_TYPE, format: THREE.RGBAFormat, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, depthBuffer: false });
+    for (const k of [0, 1]) {
+      copyUniforms.uSrc.value = s.rt[s.cur].texture[k]; runPass(copyMat, rt);
+      const buf = new Float32Array(n); renderer.readRenderTargetPixels(rt, 0, 0, s.size, s.size, buf); out.set(buf, k * n);
+    }
+    rt.dispose();
+    out.set(s.ringNow(new Float32Array(4)), 2 * n);
+    renderer.setRenderTarget(null);
+    return out;
+  },
+  ring() { readRing(); return { speed: +ringLive.speed.toFixed(4), forceN: +ringLive.force.toFixed(4) }; },
+  wind() { readWind(); return { above: +windLive.above.toFixed(3), inside: +windLive.inside.toFixed(3) }; },
+  // mean tip lean of blades in a band across the field, from upwind edge (0) to downwind edge (1)
+  leanBands(bands = 5) {
+    const s = world.sim, n = 4 * s.size * s.size, snap = this.snapshot(), d = simUniforms.uWindDir.value, half = world.cfg.half || 1;
+    const sum = new Float64Array(bands), cnt = new Float64Array(bands);
+    for (let i = 0; i < world.cfg.n; i++) {
+      const r = rootOfCPU(i), along = (r.P[0] * d.x + r.P[2] * d.y) / half; // -1 upwind .. +1 downwind
+      const b = Math.min(bands - 1, Math.max(0, Math.floor((along + 1) / 2 * bands)));
+      sum[b] += Math.hypot(snap[n + 4 * i], snap[n + 4 * i + 1]); cnt[b]++;
+    }
+    return Array.from(sum).map((v, k) => +(v / Math.max(1, cnt[k])).toFixed(4));
+  },
+  // Same stage, same steps: is the replay identical? And at 30 fps versus 60 fps?
+  sameRun(mode = 'grass', step = 2, seconds = 3) {
+    const runAt = (fpsRate) => {
+      setStage(mode, step, { snap: true }); last = 0;
+      for (let f = 0; f < seconds * fpsRate; f++) frame(last + 1000 / fpsRate, true);
+      return { t: clock.sim, s: this.snapshot() };
+    };
+    const a = runAt(60), b = runAt(60), c = runAt(30);
+    let diffAB = 0, diffAC = 0;
+    for (let i = 0; i < a.s.length; i++) { diffAB = Math.max(diffAB, Math.abs(a.s[i] - b.s[i])); diffAC = Math.max(diffAC, Math.abs(a.s[i] - c.s[i])); }
+    return { tA: +a.t.toFixed(4), tC: +c.t.toFixed(4), replayMaxDiff: diffAB, fps30vs60MaxDiff: diffAC };
+  },
+  pluckTest(mode = 'grass', step = 0, seconds = 8) {
+    setStage(mode, step, { snap: true }); last = 0;
+    startPluck();
+    for (let f = 0; f < seconds * 60 && !pluck.done; f++) frame(last + 1000 / 60, true);
+    return { idx: pluck.idx, L: +pluck.root.L.toFixed(3), crossings: pluck.cross.length, formula: { period: +pluck.period.toFixed(4), zeta: +pluck.zeta.toFixed(4) },
+      measured: pluck.measured && { period: +pluck.measured.period.toFixed(4), zeta: +pluck.measured.zeta.toFixed(4) }, text: $('pluckOut').textContent };
+  },
+  slowTest() {
+    setStage('grass', 1, { snap: true }); last = 0;
+    clock.speed = 0.25;
+    for (let f = 0; f < 120; f++) frame(last + 1000 / 60, true);
+    const t = clock.sim; clock.speed = 1;
+    return { simSecondsAfter2RealSecondsAtQuarter: +t.toFixed(4) };
+  },
+  behindTest() {
+    setStage('grass', 1, { snap: true }); last = 0;
+    for (let f = 0; f < 40; f++) frame(last + 1000 / 10, true); // 10 fps
+    return { rate: +clock.rate.toFixed(3), stats: $('stats').textContent };
+  },
+  clock, pluck,
+  thumb(w = 200) {
+    frame(last + 1000 / 60, true);
+    const c = document.createElement('canvas');
+    c.width = w; c.height = Math.round(w * canvas.height / canvas.width);
+    const g = c.getContext('2d');
+    g.fillStyle = document.body.classList.contains('hair') ? '#140f2b' : '#4a3460';
+    g.fillRect(0, 0, c.width, c.height);
+    g.drawImage(canvas, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', 0.6).split(',')[1];
+  },
+};
+
+// The page opens still, on one blade. The tour and the camera spin wait for a press.
+updateStats(false);
+requestAnimationFrame((t) => { last = t; frame(t); });
+</script>

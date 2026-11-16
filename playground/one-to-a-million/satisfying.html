@@ -1,0 +1,1324 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Satisfying Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a seamless studio backdrop fills the screen; one big caption at the top, live numbers and controls on glass at the bottom. */
+:root {
+  --paper: #ffffff;
+  --ink: #241d33;
+  --mute: rgba(36, 29, 51, 0.66);
+  --glass: rgba(255, 255, 255, 0.66);
+  --line: rgba(36, 29, 51, 0.14);
+  --warn: #b3261e;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { background: #bfe3ef; color: var(--ink); font-family: var(--display); overflow: hidden; -webkit-font-smoothing: antialiased; transition: background-color 300ms linear; }
+canvas#gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
+.ui {
+  position: fixed; inset: 0; pointer-events: none;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 10px;
+  padding-block: max(12px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.top { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+.caption {
+  font-weight: 800; font-size: clamp(1.9rem, 6.5vw, 4.4rem); letter-spacing: 0.01em; line-height: 1; color: var(--paper);
+  text-transform: uppercase; text-shadow: 0 2px 18px rgba(36, 29, 51, 0.24); font-variant-numeric: tabular-nums;
+}
+.subcap { font: 500 0.92rem/1.38 var(--display); color: var(--ink); opacity: 0.8; max-width: 60ch; }
+.next { font: 500 0.8rem/1.3 var(--mono); color: var(--ink); min-height: 1.1em; }
+.bottom { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+.seg { pointer-events: auto; display: inline-flex; flex-wrap: wrap; justify-content: center; background: var(--glass); border: 1px solid var(--line); border-radius: 999px; padding: 3px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); max-width: 100%; }
+.seg button, .seg a {
+  font: 700 0.86rem/1 var(--display); color: var(--mute); background: transparent; border: 0; border-radius: 999px;
+  padding: 0.55rem 0.85rem; cursor: pointer; min-height: 36px; text-decoration: none; display: inline-flex; align-items: center;
+}
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.seg a { color: var(--ink); }
+.seg button:focus-visible, .seg a:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.results, .stats, .keys { font: 400 0.76rem/1.45 var(--mono); color: var(--ink); text-align: center; font-variant-numeric: tabular-nums; max-width: 72ch; }
+.results { font-weight: 500; }
+/* The readouts float over the scene, so they sit on frosted glass to stay readable over the plate. */
+.results, .meter { background: rgba(255, 255, 255, 0.78); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 12px; padding: 6px 12px; box-sizing: border-box; }
+.results:empty { display: none; }
+.keys, .stats { color: var(--mute); }
+.meter { pointer-events: none; width: min(420px, 100%); display: flex; flex-direction: column; gap: 3px; }
+.meter[hidden] { display: none; }
+.meter .bar { position: relative; height: 10px; background: rgba(255, 255, 255, 0.7); border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.meter .fill { position: absolute; inset: 0 auto 0 0; width: 0%; background: var(--ink); }
+.meter .limit { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--warn); }
+.meter .lab { font: 400 0.72rem/1.2 var(--mono); color: var(--ink); display: flex; justify-content: space-between; }
+.how { pointer-events: auto; position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); top: max(12px, env(safe-area-inset-top, 0px)); }
+.how summary { list-style: none; cursor: pointer; font: 700 0.86rem/1 var(--display); background: var(--glass); border: 1px solid var(--line); border-radius: 999px; padding: 0.55rem 0.85rem; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.how summary::-webkit-details-marker { display: none; }
+.how div { margin-top: 6px; max-width: min(380px, calc(100vw - 32px)); background: rgba(255, 255, 255, 0.92); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; font: 400 0.84rem/1.45 var(--display); }
+.how p { margin: 0 0 8px; }
+#fail { position: fixed; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; background: #bfe3ef; }
+#fail[hidden] { display: none; }
+#fail p { max-width: 36ch; color: var(--mute); line-height: 1.5; }
+@media (max-width: 640px) {
+  .keys, .subcap { display: none; }
+  .top { align-items: flex-start; text-align: left; padding-right: 120px; }
+  /* on a phone each control row is one line you swipe sideways, so the scene keeps the top of the screen */
+  .seg { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; width: 100%; scrollbar-width: none; }
+  .seg::-webkit-scrollbar { display: none; }
+  .seg button, .seg a { flex: none; }
+  .results { font-size: 0.7rem; }
+  .meter .lab { font-size: 0.66rem; }
+}
+</style>
+</head>
+<body>
+<canvas id="gl" tabindex="0" aria-label="Physics simulation. Drag to look around, scroll or pinch to zoom."></canvas>
+<div class="ui">
+  <div class="top">
+    <div class="caption" id="caption" aria-live="polite">NO AIR</div>
+    <div class="subcap" id="subcap"></div>
+    <div class="next" id="next"></div>
+  </div>
+  <div class="bottom">
+    <div class="meter" id="meter" hidden>
+      <div class="lab"><span id="meterL">skin stretch 100%</span><span id="meterR">bursts above 125%</span></div>
+      <div class="bar"><div class="fill" id="meterFill"></div><div class="limit" id="meterLimit"></div></div>
+    </div>
+    <div class="results" id="results" aria-live="polite"></div>
+    <div class="seg" role="group" aria-label="Level" id="levels"></div>
+    <div class="seg" role="group" aria-label="Scene">
+      <button data-scene="squish" aria-pressed="true">Squish</button>
+      <button data-scene="beans" aria-pressed="false">Jellybeans</button>
+      <button data-scene="wreck" aria-pressed="false">Wrecking ball</button>
+      <a href="index.html">Grass and hair</a>
+    </div>
+    <div class="seg" role="group" aria-label="Playback and tools">
+      <button id="pause" aria-pressed="false">Pause</button>
+      <button id="step" aria-pressed="false">Step</button>
+      <button id="speed" aria-pressed="false">Speed 1x</button>
+      <button id="replay" aria-pressed="false">Replay</button>
+      <button id="newrun" aria-pressed="false">New run</button>
+      <button id="auto" aria-pressed="false">Auto</button>
+      <button id="xray" aria-pressed="false">X-ray</button>
+      <button id="moon" aria-pressed="false">Moon</button>
+      <button id="resetview" aria-pressed="false">Reset view</button>
+    </div>
+    <div class="stats" id="stats">starting</div>
+    <div class="keys">Keys: Space pause, period step, S speed, R replay, N new run, A auto, X x-ray, M moon, V reset view, 1 to 4 level</div>
+  </div>
+</div>
+<details class="how">
+  <summary>How it works</summary>
+  <div id="howText"></div>
+</details>
+<div id="fail" hidden>
+  <div>
+    <h1>This one needs a newer browser</h1>
+    <p>It needs WebGL 2. Try it in Safari, Chrome or Edge on a recent Mac, iPad or iPhone.</p>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
+const $ = (id) => document.getElementById(id);
+const canvas = $('gl');
+let renderer;
+try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' }); }
+catch (e) { $('fail').hidden = false; throw e; }
+if (!renderer.capabilities.isWebGL2) { $('fail').hidden = false; throw new Error('no webgl2'); }
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(34, 1, 0.05, 200);
+const fmt = (n) => (Math.round(n) || 0).toLocaleString('en-US'); // never "-0"
+const plural = (n, one, many) => `${fmt(n)} ${n === 1 ? one : many}`;
+
+/* ------------------------------------------------------------ seeded randomness: the same run number gives the same run */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+let rand = mulberry32(1);
+
+/* ------------------------------------------------------------ studio */
+function studioEnvironment() {
+  const env = new THREE.Scene();
+  env.add(new THREE.Mesh(new THREE.BoxGeometry(20, 12, 20), new THREE.MeshBasicMaterial({ color: 0x8c8a99, side: THREE.BackSide })));
+  const panel = (w, h, x, y, z, k) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: new THREE.Color(k, k, k) }));
+    m.position.set(x, y, z); m.lookAt(0, 0, 0); env.add(m);
+  };
+  panel(10, 3, 0, 5.5, 0, 6); panel(4, 6, -9.5, 1, 0, 3.5); panel(4, 6, 9.5, 1, 3, 2.2); panel(8, 4, 0, 1, -9.5, 1.6);
+  const pm = new THREE.PMREMGenerator(renderer);
+  const tex = pm.fromScene(env, 0.04).texture;
+  pm.dispose();
+  return tex;
+}
+scene.environment = studioEnvironment();
+scene.add(new THREE.HemisphereLight(0xffffff, 0x9a90aa, 0.9));
+const key = new THREE.DirectionalLight(0xffffff, 2.4);
+key.position.set(5, 10, 6);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+Object.assign(key.shadow.camera, { left: -8, right: 8, top: 8, bottom: -8, near: 1, far: 40 });
+key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02;
+scene.add(key);
+const groundMat = new THREE.MeshStandardMaterial({ color: 0xbfe3ef, roughness: 0.92 });
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), groundMat);
+ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true;
+scene.add(ground);
+scene.background = new THREE.Color(0xbfe3ef);
+scene.fog = new THREE.Fog(0xbfe3ef, 22, 60);
+const bgNow = new THREE.Color(0xbfe3ef), bgGoal = new THREE.Color(0xbfe3ef);
+function fadeBackdrop(dt) {
+  // a 300 ms fade, never a jump
+  bgNow.lerp(bgGoal, Math.min(1, dt / 0.1));
+  scene.background.copy(bgNow); scene.fog.color.copy(bgNow); groundMat.color.copy(bgNow);
+  document.body.style.backgroundColor = '#' + bgNow.getHexString();
+}
+
+/* ------------------------------------------------------------ world settings the viewer can change */
+const world = { g: 9.8, xray: false };
+
+/* ------------------------------------------------------------ soft body: position based dynamics (a balloon skin) */
+function icosphere(sub) {
+  const t = (1 + Math.sqrt(5)) / 2;
+  let v = [[-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0], [0, -1, t], [0, 1, t], [0, -1, -t], [0, 1, -t], [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]]
+    .map(([x, y, z]) => { const l = Math.hypot(x, y, z); return [x / l, y / l, z / l]; });
+  let f = [[0, 11, 5], [0, 5, 1], [0, 1, 7], [0, 7, 10], [0, 10, 11], [1, 5, 9], [5, 11, 4], [11, 10, 2], [10, 7, 6], [7, 1, 8],
+    [3, 9, 4], [3, 4, 2], [3, 2, 6], [3, 6, 8], [3, 8, 9], [4, 9, 5], [2, 4, 11], [6, 2, 10], [8, 6, 7], [9, 8, 1]];
+  for (let s = 0; s < sub; s++) {
+    const cache = new Map(), nf = [];
+    const mid = (a, b) => {
+      const k = a < b ? a + '_' + b : b + '_' + a;
+      if (cache.has(k)) return cache.get(k);
+      const [ax, ay, az] = v[a], [bx, by, bz] = v[b];
+      const x = (ax + bx) / 2, y = (ay + by) / 2, z = (az + bz) / 2, l = Math.hypot(x, y, z);
+      v.push([x / l, y / l, z / l]); cache.set(k, v.length - 1); return v.length - 1;
+    };
+    for (const [a, b, c] of f) { const ab = mid(a, b), bc = mid(b, c), ca = mid(c, a); nf.push([a, ab, ca], [b, bc, ab], [c, ca, bc], [ab, bc, ca]); }
+    f = nf;
+  }
+  return { pos: new Float32Array(v.flat()), idx: new Uint32Array(f.flat()) };
+}
+
+/* SQUISH PHYSICS START: plain JavaScript with no Three.js, so tools/squish_check.mjs can run this same block in Node. */
+// Air, from the textbook. Room pressure at sea level, a 20 degree room, dry air.
+const AIR = { pAtm: 101325, T0: 293.15, Rs: 287.05, gamma: 1.4, Cd: 0.6 };
+AIR.rho0 = AIR.pAtm / (AIR.Rs * AIR.T0); // 1.204 kg per cubic metre
+// The skin: a vinyl sheet. Model values, chosen for this ball, not measured from a real one.
+// squash: how much of its stretch stiffness the sheet keeps when pushed together (it wrinkles instead).
+const SKIN = { E: 20e6, t: 0.002, rho: 1300, tear: 20000, squash: 0.03, muFloor: 0.8, muPlate: 0.5 };
+const BALL_R = 1.05; // m
+const PLATE_T = 0.35; // press plate thickness, m
+const SQ3 = Math.sqrt(3);
+
+// A sealed vinyl ball full of air. The skin is a net of springs whose stiffness comes from the
+// sheet (k = sqrt(3)/2 * E * t per edge of an even triangle net). The air is one gas: its
+// pressure comes from how much air there is and how much room it has, by the ideal gas law.
+// Both are solved as soft constraints (XPBD), so stiff skin and light points stay stable.
+class Ball {
+  constructor(sphere, fill, lift = 0.5) {
+    const { pos, idx } = sphere, R = BALL_R, n = pos.length / 3, nT = idx.length / 3;
+    this.n = n; this.idx = idx; this.nT = nT; this.fill = fill;
+    this.p = new Float64Array(3 * n); this.prev = new Float64Array(3 * n); this.v = new Float64Array(3 * n);
+    this.g = new Float64Array(3 * n); this.dnF = new Float64Array(n); this.dnP = new Float64Array(n);
+    for (let i = 0; i < n; i++) {
+      this.p[3 * i] = pos[3 * i] * R; this.p[3 * i + 1] = pos[3 * i + 1] * R + R + lift; this.p[3 * i + 2] = pos[3 * i + 2] * R;
+    }
+    this.prev.set(this.p);
+    // edges, and which two triangles share each edge
+    const map = new Map(), ed = [], et = [];
+    for (let t = 0; t < nT; t++) for (let k = 0; k < 3; k++) {
+      const a = idx[3 * t + k], b = idx[3 * t + (k + 1) % 3], key = a < b ? a * 65536 + b : b * 65536 + a;
+      let e = map.get(key);
+      if (e === undefined) { e = ed.length / 2; ed.push(Math.min(a, b), Math.max(a, b)); et.push(t, -1); map.set(key, e); }
+      else et[2 * e + 1] = t;
+    }
+    this.edges = Int32Array.from(ed); this.edgeTri = Int32Array.from(et); this.nE = ed.length / 2;
+    this.L0 = new Float64Array(this.nE); this.lam = new Float64Array(this.nE);
+    this.broken = new Uint8Array(this.nE); this.hole = new Uint8Array(nT);
+    for (let e = 0; e < this.nE; e++) this.L0[e] = this.edgeLen(e);
+    // mass: each point carries a third of the skin on its triangles
+    const mass = new Float64Array(n); let area = 0;
+    for (let t = 0; t < nT; t++) { const A = this.triArea(t); area += A; for (let k = 0; k < 3; k++) mass[idx[3 * t + k]] += SKIN.rho * SKIN.t * A / 3; }
+    this.w = mass.map((m) => 1 / m); this.mass = mass; this.area0 = area; this.skinMass = SKIN.rho * SKIN.t * area;
+    this.kE = (SQ3 / 2) * SKIN.E * SKIN.t; // N/m per edge
+    this.sign = 1; this.sign = Math.sign(this.volume()) || 1; this.V0 = this.volume();
+    // the air: fill is how much air, as a share of what fills the ball at room pressure; null = valve open
+    this.sealed = fill !== null;
+    this.mGas0 = this.sealed ? AIR.rho0 * fill * this.V0 : 0; this.mGas = this.mGas0;
+    this.K = null; // set when the squeeze starts: from then on p = K * rho^1.4 (too quick to lose heat)
+    this.intact = this.listIntact();
+    this.maxT = 0; this.maxTEver = 0; this.burst = false; this.burstAt = null; this.holeChanged = false;
+    this.pressF = 0; this.floorF = 0; this.holeA = 0; this.mdot = 0; this.jetSpeed = 0; this.jetMax = 0;
+  }
+  edgeLen(e) { const p = this.p, a = 3 * this.edges[2 * e], b = 3 * this.edges[2 * e + 1]; return Math.hypot(p[a] - p[b], p[a + 1] - p[b + 1], p[a + 2] - p[b + 2]); }
+  triArea(t) {
+    const p = this.p, a = 3 * this.idx[3 * t], b = 3 * this.idx[3 * t + 1], c = 3 * this.idx[3 * t + 2];
+    const ux = p[b] - p[a], uy = p[b + 1] - p[a + 1], uz = p[b + 2] - p[a + 2], vx = p[c] - p[a], vy = p[c + 1] - p[a + 1], vz = p[c + 2] - p[a + 2];
+    return 0.5 * Math.hypot(uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx);
+  }
+  listIntact() { const out = []; for (let t = 0; t < this.nT; t++) if (!this.hole[t]) out.push(t); return Int32Array.from(out); }
+  // volume of the closed surface (a torn patch still spans its opening)
+  volume() {
+    const p = this.p, idx = this.idx; let V = 0;
+    for (let t = 0; t < idx.length; t += 3) {
+      const a = idx[t] * 3, b = idx[t + 1] * 3, c = idx[t + 2] * 3;
+      V += p[a] * (p[b + 1] * p[c + 2] - p[b + 2] * p[c + 1]) - p[a + 1] * (p[b] * p[c + 2] - p[b + 2] * p[c]) + p[a + 2] * (p[b] * p[c + 1] - p[b + 1] * p[c]);
+    }
+    return (V / 6) * this.sign;
+  }
+  // the gas law. Before the squeeze the air sits at room temperature; during it, no heat gets out.
+  density(V) { return this.mGas / V; }
+  pressure(V) {
+    if (!this.sealed) return AIR.pAtm;
+    const rho = this.density(V);
+    return this.K === null ? rho * AIR.Rs * AIR.T0 : this.K * Math.pow(rho, AIR.gamma);
+  }
+  temperature(V) { if (!this.sealed) return AIR.T0; const rho = this.density(V); return this.pressure(V) / (rho * AIR.Rs); }
+  volumeAtRoomPressure() {
+    if (this.K === null) return this.mGas / AIR.rho0;
+    return this.mGas / Math.pow(AIR.pAtm / this.K, 1 / AIR.gamma);
+  }
+  startSqueeze() { if (this.sealed && this.K === null) { const V = this.volume(); this.K = this.pressure(V) / Math.pow(this.density(V), AIR.gamma); } }
+
+  step(h, iters, G, pressY, pressPrev, half) {
+    const { p, prev, v, w, g, edges, L0, lam, broken, dnF, dnP, idx } = this, n = this.n, skin = 0.02;
+    for (let i = 0; i < 3 * n; i += 3) {
+      v[i + 1] -= G * h;
+      prev[i] = p[i]; prev[i + 1] = p[i + 1]; prev[i + 2] = p[i + 2];
+      p[i] += v[i] * h; p[i + 1] += v[i + 1] * h; p[i + 2] += v[i + 2] * h;
+    }
+    lam.fill(0); dnF.fill(0); dnP.fill(0);
+    let lamV = 0, aV = 0, Veq = 0;
+    const aE = 1 / (this.kE * h * h), aEsquash = aE / SKIN.squash;
+    const gasOn = this.sealed && this.mGas > 0;
+    if (gasOn) {
+      // the air as a spring on the volume, its stiffness taken from the gas law at this moment
+      const V = this.volume(), dp = this.pressure(V) - AIR.pAtm; Veq = this.volumeAtRoomPressure();
+      const dV = Veq - V, kap = Math.abs(dV) > 1e-7 * V ? dp / dV : AIR.gamma * this.pressure(V) / V;
+      aV = 1 / (Math.max(kap, 1) * h * h);
+    }
+    let pressImp = 0, floorImp = 0;
+    for (let it = 0; it < iters; it++) {
+      for (let e = 0; e < this.nE; e++) {
+        if (broken[e]) continue;
+        const ia = edges[2 * e], ib = edges[2 * e + 1], a = 3 * ia, b = 3 * ib;
+        const dx = p[a] - p[b], dy = p[a + 1] - p[b + 1], dz = p[a + 2] - p[b + 2], len = Math.hypot(dx, dy, dz);
+        if (len < 1e-12) continue;
+        const C = len - L0[e], wa = w[ia], wb = w[ib], a0 = C < 0 ? aEsquash : aE;
+        const dl = (-C - a0 * lam[e]) / (wa + wb + a0);
+        lam[e] += dl;
+        const sx = dx / len * dl, sy = dy / len * dl, sz = dz / len * dl;
+        p[a] += wa * sx; p[a + 1] += wa * sy; p[a + 2] += wa * sz;
+        p[b] -= wb * sx; p[b + 1] -= wb * sy; p[b + 2] -= wb * sz;
+      }
+      if (gasOn) {
+        g.fill(0);
+        for (const t of this.intact) {
+          const a = idx[3 * t] * 3, b = idx[3 * t + 1] * 3, c = idx[3 * t + 2] * 3;
+          const ax = p[a], ay = p[a + 1], az = p[a + 2], bx = p[b], by = p[b + 1], bz = p[b + 2], cx = p[c], cy = p[c + 1], cz = p[c + 2];
+          g[a] += by * cz - bz * cy; g[a + 1] += bz * cx - bx * cz; g[a + 2] += bx * cy - by * cx;
+          g[b] += cy * az - cz * ay; g[b + 1] += cz * ax - cx * az; g[b + 2] += cx * ay - cy * ax;
+          g[c] += ay * bz - az * by; g[c + 1] += az * bx - ax * bz; g[c + 2] += ax * by - ay * bx;
+        }
+        let denom = 0;
+        for (let i = 0; i < 3 * n; i++) { g[i] *= this.sign / 6; denom += w[(i / 3) | 0] * g[i] * g[i]; }
+        const C = this.volume() - Veq;
+        let dl = (-C - aV * lamV) / (denom + aV);
+        // Guard: once most of the skin is hole the air cannot push on much; never move a point
+        // more than 5 mm in one pass because of it (the air is leaving faster than that anyway).
+        let gmax = 0; for (let i = 0; i < 3 * n; i++) gmax = Math.max(gmax, Math.abs(w[(i / 3) | 0] * g[i]));
+        if (gmax * Math.abs(dl) > 0.005) dl = Math.sign(dl) * 0.005 / gmax;
+        lamV += dl;
+        for (let i = 0; i < 3 * n; i++) p[i] += w[(i / 3) | 0] * g[i] * dl;
+      }
+      for (let j = 0; j < n; j++) {
+        const i = 3 * j;
+        if (p[i + 1] < skin) { const d = skin - p[i + 1]; p[i + 1] = skin; dnF[j] += d; floorImp += this.mass[j] * d; }
+        // the press plate is a solid box: skin that touches it is pushed out of the face it came from
+        const top = pressY + PLATE_T;
+        if (Math.abs(p[i]) < half + skin && Math.abs(p[i + 2]) < half + skin && p[i + 1] > pressY - skin && p[i + 1] < top + skin) {
+          if (prev[i + 1] <= pressPrev - skin + 1e-4) { const d = p[i + 1] - (pressY - skin); p[i + 1] = pressY - skin; dnP[j] += d; pressImp += this.mass[j] * d; }
+          else if (prev[i + 1] >= pressPrev + PLATE_T + skin - 1e-4) { const d = top + skin - p[i + 1]; p[i + 1] = top + skin; dnP[j] += d; }
+          else {
+            const ox = half + skin - Math.abs(p[i]), oz = half + skin - Math.abs(p[i + 2]);
+            if (ox < oz) p[i] = Math.sign(p[i] || 1) * (half + skin); else p[i + 2] = Math.sign(p[i + 2] || 1) * (half + skin);
+          }
+        }
+      }
+    }
+    // friction: skin pressed onto the floor or the plate cannot slide sideways further than mu times how hard it was pressed
+    for (let j = 0; j < n; j++) {
+      const dn = dnF[j] * SKIN.muFloor + dnP[j] * SKIN.muPlate;
+      if (dn <= 0) continue;
+      const i = 3 * j, dx = p[i] - prev[i], dz = p[i + 2] - prev[i + 2], dt = Math.hypot(dx, dz);
+      if (dt <= dn) { p[i] = prev[i]; p[i + 2] = prev[i + 2]; } else { const k = dn / dt; p[i] -= dx * k; p[i + 2] -= dz * k; }
+    }
+    const damp = Math.exp(-0.5 * h);
+    for (let i = 0; i < 3 * n; i++) v[i] = ((p[i] - prev[i]) / h) * damp;
+    // forces this step, in newtons: the press and the floor each pushed the skin this hard
+    const k = 1 - Math.exp(-h / 0.02); // smoothed over 0.02 s
+    this.pressF += (pressImp / (h * h) - this.pressF) * k;
+    this.floorF += (floorImp / (h * h) - this.floorF) * k;
+    this.stepN = (this.stepN || 0) + 1;
+    if (this.stepN % 3 === 0) this.tearCheck(); // 480 checks a second: a tear can run about 60 m/s
+    this.leak(h);
+  }
+  // pull in the skin, newtons per metre, from how far each edge is stretched
+  tension(e) {
+    const strain = (this.edgeLen(e) - this.L0[e]) / this.L0[e];
+    return 1.5 * SKIN.E * SKIN.t * strain * (strain < 0 ? SKIN.squash : 1);
+  }
+  // The pull at each point is the average over its edges, so one kinked edge in the net does not
+  // count as a weak spot. The skin tears at the point pulled hardest, along its most stretched edge.
+  tearCheck() {
+    const n = this.n, sum = this.tSum || (this.tSum = new Float64Array(n)), cnt = this.tCnt || (this.tCnt = new Uint8Array(n));
+    const best = this.tBest || (this.tBest = new Int32Array(n)), bestT = this.tBestT || (this.tBestT = new Float64Array(n));
+    sum.fill(0); cnt.fill(0); bestT.fill(-1e9);
+    for (let e = 0; e < this.nE; e++) {
+      if (this.broken[e]) continue;
+      const T = this.tension(e), va = this.edges[2 * e], vb = this.edges[2 * e + 1];
+      sum[va] += T; cnt[va]++; if (T > bestT[va]) { bestT[va] = T; best[va] = e; }
+      sum[vb] += T; cnt[vb]++; if (T > bestT[vb]) { bestT[vb] = T; best[vb] = e; }
+    }
+    // Away from a hole a point's pull is the average over its edges. On the rim of a hole the
+    // pull piles up at the tip of the tear, so there the hardest pulled edge counts: a tear runs.
+    let maxT = 0, maxV = -1;
+    const rim = this.rim;
+    for (let v = 0; v < n; v++) if (cnt[v]) { const T = rim && rim[v] ? bestT[v] : sum[v] / cnt[v]; if (T > maxT) { maxT = T; maxV = v; } }
+    this.maxT = maxT; this.maxTEver = Math.max(this.maxTEver, maxT);
+    if (maxT <= SKIN.tear || maxV < 0) return;
+    const maxE = best[maxV];
+    // one edge tears per step: the two small triangles beside it open as a hole
+    this.broken[maxE] = 1;
+    const t0 = this.edgeTri[2 * maxE], t1 = this.edgeTri[2 * maxE + 1];
+    if (t0 >= 0) this.hole[t0] = 1;
+    if (t1 >= 0) this.hole[t1] = 1;
+    // an edge with no skin left on either side is gone too
+    for (let e = 0; e < this.nE; e++) {
+      const t0 = this.edgeTri[2 * e], t1 = this.edgeTri[2 * e + 1];
+      if (!this.broken[e] && (t0 < 0 || this.hole[t0]) && (t1 < 0 || this.hole[t1])) this.broken[e] = 1;
+    }
+    this.intact = this.listIntact(); this.holeChanged = true;
+    const onRim = this.rim || (this.rim = new Uint8Array(this.n));
+    for (let t = 0; t < this.nT; t++) if (this.hole[t]) for (let q = 0; q < 3; q++) onRim[this.idx[3 * t + q]] = 1;
+    if (!this.burst) { this.burst = true; this.burstAt = { tension: maxT }; }
+  }
+  // air through the hole: compressible flow through a sharp-edged opening (Saint-Venant and Wantzel)
+  leak(h) {
+    if (!this.sealed || !this.burst) return;
+    let A = 0; for (let t = 0; t < this.nT; t++) if (this.hole[t]) A += this.triArea(t);
+    this.holeA = A;
+    const V = this.volume(), pIn = this.pressure(V), out = pIn >= AIR.pAtm;
+    const pUp = out ? pIn : AIR.pAtm, rhoUp = out ? this.density(V) : AIR.rho0, pDown = out ? AIR.pAtm : pIn;
+    const g = AIR.gamma, ratio = Math.max(pDown / pUp, Math.pow(2 / (g + 1), g / (g - 1))); // 0.528: the flow chokes
+    const speed = Math.sqrt((2 * g / (g - 1)) * (pUp / rhoUp) * (1 - Math.pow(ratio, (g - 1) / g)));
+    const mdot = (out ? 1 : -1) * AIR.Cd * A * rhoUp * Math.pow(ratio, 1 / g) * speed;
+    this.mGas = Math.max(1e-6, this.mGas - mdot * h);
+    this.mdot = mdot; this.jetSpeed = speed; // m/s in the hole
+  }
+}
+/* SQUISH PHYSICS END */
+
+/* ------------------------------------------------------------ grains: many bodies, position based, spatial hash, friction */
+class Grains {
+  constructor(maxN, r, mass) {
+    this.max = maxN; this.r = r; this.alive = 0; this.mass = mass;
+    this.p = new Float32Array(3 * maxN); this.prev = new Float32Array(3 * maxN); this.v = new Float32Array(3 * maxN);
+    this.start = new Float32Array(3 * maxN);
+    this.om = new Float32Array(3 * maxN); // spin, radians per second
+    this.w = new Float32Array(maxN).fill(1 / mass);
+    this.inside = new Uint8Array(maxN);
+    this.q = new Float32Array(4 * maxN);
+    let T = 1; while (T < 2 * maxN) T <<= 1;
+    this.T = T; this.mask = T - 1; this.cs = 2 * r;
+    this.cellStart = new Int32Array(T + 1); this.entries = new Int32Array(maxN); this.keys = new Int32Array(maxN);
+    this.mu = 0.55; this.muK = 0.35; this.muG = 0.5; this.vmax = Infinity; this.damp = 0.2;
+  }
+  hash(ix, iy, iz) { return (Math.imul(ix, 92837111) ^ Math.imul(iy, 689287499) ^ Math.imul(iz, 283923481)) & this.mask; }
+  add(x, y, z, vx = 0, vy = 0, vz = 0, randomTurn = true) {
+    if (this.alive >= this.max) return -1;
+    const i = this.alive++, k = 3 * i;
+    this.p[k] = x; this.p[k + 1] = y; this.p[k + 2] = z;
+    this.prev[k] = x; this.prev[k + 1] = y; this.prev[k + 2] = z;
+    this.start[k] = x; this.start[k + 1] = y; this.start[k + 2] = z;
+    this.v[k] = vx; this.v[k + 1] = vy; this.v[k + 2] = vz;
+    if (randomTurn) {
+      const tq = new THREE.Quaternion().setFromEuler(new THREE.Euler(rand() * 6.283, rand() * 6.283, rand() * 6.283));
+      this.q[4 * i] = tq.x; this.q[4 * i + 1] = tq.y; this.q[4 * i + 2] = tq.z; this.q[4 * i + 3] = tq.w;
+    } else { this.q[4 * i + 3] = 1; }
+    return i;
+  }
+  roomAt(x, y, z, recent = 400) {
+    const d2 = (2.1 * this.r) ** 2;
+    for (let j = Math.max(0, this.alive - recent); j < this.alive; j++) {
+      const dx = this.p[3 * j] - x, dy = this.p[3 * j + 1] - y, dz = this.p[3 * j + 2] - z;
+      if (dx * dx + dy * dy + dz * dz < d2) return false;
+    }
+    return true;
+  }
+  build() {
+    const { cellStart, entries, keys, p, cs } = this, n = this.alive;
+    cellStart.fill(0);
+    for (let i = 0; i < n; i++) {
+      const k = this.hash(Math.floor(p[3 * i] / cs), Math.floor(p[3 * i + 1] / cs), Math.floor(p[3 * i + 2] / cs));
+      keys[i] = k; cellStart[k]++;
+    }
+    let s = 0;
+    for (let k = 0; k < this.T; k++) { s += cellStart[k]; cellStart[k] = s; }
+    cellStart[this.T] = s;
+    for (let i = 0; i < n; i++) { const k = keys[i]; cellStart[k]--; entries[cellStart[k]] = i; }
+  }
+  solvePairs() {
+    const { p, prev, w, cellStart, entries, cs, mu, muK } = this, n = this.alive, d0 = 2 * this.r, d02 = d0 * d0;
+    for (let i = 0; i < n; i++) {
+      const ix = Math.floor(p[3 * i] / cs), iy = Math.floor(p[3 * i + 1] / cs), iz = Math.floor(p[3 * i + 2] / cs);
+      for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) {
+        const k = this.hash(ix + dx, iy + dy, iz + dz);
+        for (let e = cellStart[k], end = cellStart[k + 1]; e < end; e++) {
+          const j = entries[e];
+          if (j <= i) continue;
+          const ax = p[3 * i] - p[3 * j], ay = p[3 * i + 1] - p[3 * j + 1], az = p[3 * i + 2] - p[3 * j + 2];
+          const d2 = ax * ax + ay * ay + az * az;
+          if (d2 >= d02 || d2 < 1e-12) continue;
+          const d = Math.sqrt(d2), nx = ax / d, ny = ay / d, nz = az / d;
+          const wsum = w[i] + w[j];
+          const corr = d0 - d, ci = (corr * w[i]) / wsum, cj = (corr * w[j]) / wsum;
+          p[3 * i] += nx * ci; p[3 * i + 1] += ny * ci; p[3 * i + 2] += nz * ci;
+          p[3 * j] -= nx * cj; p[3 * j + 1] -= ny * cj; p[3 * j + 2] -= nz * cj;
+          // friction between the two: static grabs small slips, kinetic slows big ones
+          const rx = (p[3 * i] - prev[3 * i]) - (p[3 * j] - prev[3 * j]);
+          const ry = (p[3 * i + 1] - prev[3 * i + 1]) - (p[3 * j + 1] - prev[3 * j + 1]);
+          const rz = (p[3 * i + 2] - prev[3 * i + 2]) - (p[3 * j + 2] - prev[3 * j + 2]);
+          const rn = rx * nx + ry * ny + rz * nz;
+          const tx = rx - rn * nx, ty = ry - rn * ny, tz = rz - rn * nz, tl = Math.hypot(tx, ty, tz);
+          if (tl > 0) {
+            const k = tl < mu * corr ? 1 : Math.min(1, (muK * corr) / tl);
+            const fi = (w[i] / wsum) * k, fj = (w[j] / wsum) * k;
+            p[3 * i] -= tx * fi; p[3 * i + 1] -= ty * fi; p[3 * i + 2] -= tz * fi;
+            p[3 * j] += tx * fj; p[3 * j + 1] += ty * fj; p[3 * j + 2] += tz * fj;
+          }
+        }
+      }
+    }
+  }
+  integrate(h) {
+    const { p, prev, v } = this, n = this.alive, G = world.g;
+    for (let i = 0; i < 3 * n; i += 3) {
+      v[i + 1] -= G * h;
+      prev[i] = p[i]; prev[i + 1] = p[i + 1]; prev[i + 2] = p[i + 2];
+      p[i] += v[i] * h; p[i + 1] += v[i + 1] * h; p[i + 2] += v[i + 2] * h;
+    }
+  }
+  finish(h) {
+    const { p, prev, v, om, r } = this, n = this.alive, G = world.g, damp = Math.exp(-this.damp * h);
+    for (let i = 0; i < n; i++) {
+      const k3 = 3 * i;
+      v[k3] = (p[k3] - prev[k3]) / h; v[k3 + 1] = (p[k3 + 1] - prev[k3 + 1]) / h; v[k3 + 2] = (p[k3 + 2] - prev[k3 + 2]) / h;
+      if (p[k3 + 1] <= r + 1e-3) {
+        // sliding friction on the floor, the real rule: it slows a slide by mu times g every second
+        const vt = Math.hypot(v[k3], v[k3 + 2]);
+        if (vt > 0) { const k = Math.min(1, (this.muG * G * h) / vt); v[k3] *= 1 - k; v[k3 + 2] *= 1 - k; }
+        // on the floor a body rolls: spin matches its speed
+        om[k3] = v[k3 + 2] / r; om[k3 + 1] = 0; om[k3 + 2] = -v[k3] / r;
+      }
+      v[k3] *= damp; v[k3 + 1] *= damp; v[k3 + 2] *= damp;
+      if (this.vmax < Infinity) {
+        const sp = Math.hypot(v[k3], v[k3 + 1], v[k3 + 2]);
+        if (sp > this.vmax) { const s = this.vmax / sp; v[k3] *= s; v[k3 + 1] *= s; v[k3 + 2] *= s; }
+      }
+    }
+  }
+  ground(i) { if (this.p[3 * i + 1] < this.r) this.p[3 * i + 1] = this.r; }
+  spin(dt) {
+    // spin is drawn from each body's stored spin; in the air it keeps the spin it had
+    const { q, om } = this, n = this.alive;
+    for (let i = 0; i < n; i++) {
+      const wx = om[3 * i], wy = om[3 * i + 1], wz = om[3 * i + 2], wl = Math.hypot(wx, wy, wz);
+      if (wl < 1e-4) continue;
+      const a = wl * dt, s = Math.sin(a / 2) / wl;
+      const dx = wx * s, dy = wy * s, dz = wz * s, dw = Math.cos(a / 2);
+      const qx = q[4 * i], qy = q[4 * i + 1], qz = q[4 * i + 2], qw = q[4 * i + 3];
+      let x = dw * qx + dx * qw + dy * qz - dz * qy;
+      let y = dw * qy - dx * qz + dy * qw + dz * qx;
+      let z = dw * qz + dx * qy - dy * qx + dz * qw;
+      let w = dw * qw - dx * qx - dy * qy - dz * qz;
+      const l = Math.hypot(x, y, z, w) || 1;
+      q[4 * i] = x / l; q[4 * i + 1] = y / l; q[4 * i + 2] = z / l; q[4 * i + 3] = w / l;
+    }
+  }
+}
+
+/* ------------------------------------------------------------ real shapes: the Rapier engine (knowledge/pages/rapier-physics-engine.md) */
+// One 4.3 MB script with the engine inside. It starts loading as soon as the page is up; until it
+// is ready, or if this device cannot run it, the jellybeans and the wall use the simpler ball version.
+const RAPIER_URL = 'https://cdn.jsdelivr.net/npm/@dimforge/rapier3d-compat@0.21.0/dist/rapier.mjs';
+const engine = { R: null, state: 'idle', error: '', promise: null };
+// ?balls in the address keeps the old ball version, for comparing the two or a device that struggles
+const forceBalls = new URLSearchParams(location.search).has('balls');
+function loadEngine() {
+  if (forceBalls) { engine.state = 'off'; return Promise.resolve(); }
+  if (!engine.promise) {
+    engine.state = 'loading';
+    engine.promise = import(RAPIER_URL)
+      .then(async (m) => { await m.default.init(); engine.R = m.default; engine.state = 'ready'; })
+      .catch((e) => { engine.state = 'failed'; engine.error = String((e && e.message) || e); console.warn('Rapier did not load, using the ball version:', e); })
+      .then(() => { if (engine.state === 'ready' && state.sim && state.sim.waitingForEngine) setScene(state.scene, state.level); });
+  }
+  return engine.promise;
+}
+// Every contact uses the average of the two surfaces' friction and bounce, set here on purpose.
+function avg(desc) {
+  const R = engine.R;
+  return desc.setFrictionCombineRule(R.CoefficientCombineRule.Average).setRestitutionCombineRule(R.CoefficientCombineRule.Average);
+}
+function rigidWorld(H, iters) {
+  const R = engine.R, w = new R.World({ x: 0, y: -world.g, z: 0 });
+  w.timestep = H; w.numSolverIterations = iters;
+  const floor = w.createRigidBody(R.RigidBodyDesc.fixed().setTranslation(0, -0.5, 0));
+  w.createCollider(avg(R.ColliderDesc.cuboid(60, 0.5, 60).setFriction(0.5)), floor);
+  return w;
+}
+function stepRigid(s, H) {
+  s.w.gravity = { x: 0, y: -world.g, z: 0 };
+  s.w.timestep = H;
+  s.w.step();
+}
+function drawRigid(bodies, mesh) {
+  for (let i = 0; i < bodies.length; i++) {
+    const t = bodies[i].translation(), q = bodies[i].rotation();
+    tmpP.set(t.x, t.y, t.z); tmpQ.set(q.x, q.y, q.z, q.w);
+    tmpM.compose(tmpP, tmpQ, tmpS); mesh.setMatrixAt(i, tmpM);
+  }
+  mesh.count = bodies.length;
+  mesh.instanceMatrix.needsUpdate = true;
+  mesh.material.wireframe = world.xray;
+}
+
+/* ------------------------------------------------------------ scenes */
+const PALETTE = ['#ff8fb1', '#ffd36e', '#8fd3ff', '#b59cff', '#7fe0b0', '#ffa66b', '#ff6f91', '#c7f26b', '#f7f3e8', '#6b4f3f'];
+const BEAN_R = 0.12; // ball version: one size at every level, so only the count changes
+const PILL_R = 0.11, PILL_HALF = 0.075; // real shape: a pill 37 cm long and 22 cm wide, at every level
+const BEAN_DENSITY = 1200; // kg per cubic metre, about gummy candy (assumed): 13.5 kg a bean
+const BLOCK_A = 0.15; // half a foam cube's side, m
+const BALL_SPEED = 8; // m/s, the same at every level
+const BLOCK_MASS = 0.25; // kg
+
+const SCENES = {
+  squish: {
+    bg: '#bfe3ef', H: 1 / 1440, iters: 3, length: 8,
+    sub: 'A vinyl ball 2.1 m across under a hydraulic press. The level is how much air is inside, compared with what fills it at room pressure. The air is a real gas: squeeze it and its pressure and temperature climb.',
+    levels: /* LEVELS START */ [
+      { label: 'VALVE OPEN', fill: null, color: '#9fd8a8' },
+      { label: '78% FULL', fill: 0.78, color: '#ffd36e' },
+      { label: '100% FULL', fill: 1.0, color: '#ff8fb1' },
+      { label: '108% FULL', fill: 1.08, color: '#ff6f6f' },
+    ], /* LEVELS END */
+    cam: { d: 12.5, phi: 0.3, theta: 0.55, ty: -0.6 },
+  },
+  beans: {
+    bg: '#ece0f2', H: 1 / 60, Hballs: 1 / 180, iters: 3, length: 16,
+    sub: 'Giant jellybeans, each 37 cm long and 13.5 kg, poured into a glass bowl 4 m wide. Every bean is a capsule (pill) shape: it tumbles, rolls like a log, stacks and jams.',
+    subBalls: 'Giant jellybeans, each 37 cm long, poured into a glass bowl 4 m wide.',
+    levels: [{ n: 10, label: '10 GIANT JELLYBEANS' }, { n: 100, label: '100 GIANT JELLYBEANS' }, { n: 1000, label: '1,000 GIANT JELLYBEANS' }, { n: 3000, label: '3,000 GIANT JELLYBEANS' }],
+    cam: { d: 14.5, phi: 0.42, theta: 0.4, ty: 0.4 },
+  },
+  wreck: {
+    bg: '#f2d2b6', H: 1 / 240, Hballs: 1 / 360, iters: 4, length: 7,
+    sub: 'Same size ball, rolling at the same speed (8 m/s). Only its mass changes. The wall is 216 very light foam cubes, 30 cm and 250 g each: boxes that stack, slide and topple.',
+    subBalls: 'Same size ball, same speed (8 m/s). Only its mass changes. The wall is 216 foam blocks, 30 cm and 250 g each.',
+    levels: [{ M: 1, label: '1 KG' }, { M: 10, label: '10 KG' }, { M: 100, label: '100 KG' }, { M: 500, label: '500 KG' }],
+    cam: { d: 15.5, phi: 0.2, theta: 1.05, ty: -0.9 },
+  },
+};
+
+const HOW = {
+  squish: [
+    'The air is a real gas. Its pressure comes from how much air is inside and how much room it has (the ideal gas law). Room pressure is 101.3 kPa, and the ball has settled at room temperature, 20 \u00b0C, before the press moves. The squeeze takes 2 seconds, far too quick for heat to leave a 2 m ball, so the air warms as it is squeezed: pressure \u00d7 volume<sup>1.4</sup> stays the same. That is why a bike pump gets warm. Let go and it cools back down.',
+    'The skin is a vinyl sheet 2 mm thick with a Young\u2019s modulus of 20 MPa (model values, chosen for this ball, not measured from a real one): 642 points joined by 1,920 springs of 34.6 kN/m, set so the net stretches like that sheet. Pushed together it barely fights back (3% of its stretch stiffness), so it wrinkles. It weighs 36 kg, and the mat and the plate grip it with friction (0.8 and 0.5).',
+    'Burst rule, the same at every level: the skin tears where its pull, averaged around a point, passes 20 kN per metre. The two small triangles beside the torn edge open as a hole. At the tip of a tear the pull piles up, so there each edge counts on its own and the tear can run. Air leaves through the hole at the speed its pressure gives it (compressible flow through a sharp hole). The puffs you see are drawn about 20 times slower than the real air.',
+    'The press is a 4 m clear plate on a set path: down, easing to a stop at 0.6 m, then back up. The force shown is what it takes to follow that path.',
+    'Left out: the skin stretches like a spring all the way to its tear (no yield, no stretching out of shape), has no bending stiffness so folds are sharper than real, and as a net it narrows sideways like a sheet with Poisson ratio 1/3 (vinyl is nearer 0.4). The air has one pressure everywhere, no flow inside. No sound. Each step is 1/1440 of a second with 3 solver passes. Solver check: a sealed ball at rest, filled to 104% or more, matches the law for a sphere (pressure = 2 \u00d7 pull / radius) to about 1%.',
+  ],
+  beans: [
+    'Each bean is a capsule (a pill shape) 37 cm long and 22 cm wide. At an assumed 1,200 kg per cubic metre, about gummy candy, each one is 13.5 kg. Pills roll like a log, tip over, stack and jam, and the engine works out every contact between the capsules.',
+    'The bowl is 4 m across, built from 384 flat-faced glass tiles 15 cm thick, so its inside is up to about 1 cm off a true sphere, with faint seams. In a 3,000 bean test not one bean got pushed through it. Friction 0.5 bean on bean and bounce 0.2, averaged with whatever a bean touches. Damping of 0.5 per second on spin and 0.05 per second on speed, everywhere including mid air, stands in for rolling resistance and air drag so spilled beans come to rest.',
+    '3,000 beans are about 34 cubic metres of candy; the bowl holds about 11 when packed, so most spill. "In the bowl" counts every bean within 2 m of the bowl\u2019s centre, heap included. Each step is 1/60 of a second with 4 solver passes. Left out: the beans are hard (no squish), a pill and not a kidney shape, and the glass cannot crack. Physics engine: Rapier 0.21 by Dimforge (open source, Apache-2.0).',
+  ],
+  wreck: [
+    'At 0.8 s the ball is set rolling at 8 m/s, already spinning so it does not skid. It is a solid sphere 1.2 m across; it looks like polished steel but it is not: at 1 kg it is lighter than the air it would push aside, at 500 kg about half as dense as water. Its energy is the moving part plus the spinning part (a rolling solid ball carries 40% extra). Momentum is mass times speed, so 500 kg carries 500 times what 1 kg carries.',
+    'The wall is 216 very light foam cubes (about 9 kg per cubic metre), 30 cm and 250 g each, stacked by hand 9 high, 12 wide, 2 deep with 3 mm between columns, in straight columns rather than a brick pattern. They slide, tip and fall. Friction 0.6 cube on cube and 0.55 cube on floor (the two surfaces averaged), bounce about 0.1. The forward momentum the ball and cubes lose goes into the floor through friction; lost energy turns into heat and sound.',
+    'Each step is 1/240 of a second with 4 solver passes. The wall settles 1.4 cm before the hit: 8 mm of that is the 1 mm gaps left between rows when it was built, the rest is the solver giving a little. Left out: no air, so the 1 kg ball rolls anyway; the foam does not dent. Physics engine: Rapier 0.21 by Dimforge (open source, Apache-2.0).',
+  ],
+};
+
+// What the ball version does, shown instead when the real-shape engine is not running.
+const HOW_BALLS = {
+  beans: ['Ball version: every bean is a ball 24 cm across to the solver (position based, with a spatial grid and friction); the bean shape and its tumble are drawn on top. The bowl is a smooth curved wall. Step 1/180 of a second.'],
+  wreck: ['Ball version: every cube is a ball to the solver, so cubes roll more than real boxes would, and the ball is pushed along by overlap, not by an engine. Step 1/360 of a second.'],
+};
+
+const state = { scene: 'squish', level: 0, simT: 0, acc: 0, auto: false, paused: false, speed: 1, run: 1, objects: [], sim: null, steps: 0, lastSteps: 0, behind: 1 };
+const tmpM = new THREE.Matrix4(), tmpQ = new THREE.Quaternion(), tmpP = new THREE.Vector3(), tmpS = new THREE.Vector3(1, 1, 1);
+
+function clearScene() {
+  if (state.sim && state.sim.w) state.sim.w.free(); // the engine's memory lives outside JavaScript
+  for (const o of state.objects) {
+    scene.remove(o);
+    o.traverse?.((m) => { if (m.geometry) m.geometry.dispose(); if (m.material) (Array.isArray(m.material) ? m.material : [m.material]).forEach((x) => x.dispose()); });
+  }
+  state.objects = []; state.sim = null;
+}
+function add(o) { scene.add(o); state.objects.push(o); return o; }
+
+/* Squish */
+const SPHERE = icosphere(3);
+function buildSquish(level) {
+  const L = SCENES.squish.levels[level];
+  const ball = new Ball(SPHERE, L.fill);
+  const pos32 = new Float32Array(ball.p.length); pos32.set(ball.p);
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos32, 3));
+  geo.setIndex(new THREE.BufferAttribute(new Uint32Array(ball.idx), 1));
+  const mat = new THREE.MeshPhysicalMaterial({ color: L.color, roughness: 0.32, clearcoat: 1, clearcoatRoughness: 0.12, sheen: 0.4, sheenColor: new THREE.Color('#ffffff'), side: THREE.DoubleSide });
+  const mesh = add(new THREE.Mesh(geo, mat));
+  mesh.castShadow = true; mesh.receiveShadow = true;
+  const steel = new THREE.MeshStandardMaterial({ color: 0xc9ccd4, metalness: 1, roughness: 0.28 });
+  const press = add(new THREE.Group());
+  // a clear acrylic plate, so you can watch the squish through it
+  const acrylic = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.04, transmission: 0.95, thickness: 0.35, ior: 1.49, transparent: true, opacity: 0.6 });
+  const plate = new THREE.Mesh(new THREE.BoxGeometry(4.0, PLATE_T, 4.0), acrylic); plate.position.y = PLATE_T / 2;
+  const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 8, 32), steel); rod.position.y = 4.3; rod.castShadow = true;
+  press.add(plate, rod);
+  const base = add(new THREE.Mesh(new THREE.CylinderGeometry(2.9, 2.9, 0.06, 64), new THREE.MeshStandardMaterial({ color: 0x3a3442, roughness: 0.9 }))); // a rubber mat
+  base.receiveShadow = true;
+  // the air jet out of a tear, drawn as puffs (slowed down: the real air moves at the speed in the readout)
+  const JET = 500, jp = new Float32Array(3 * JET).fill(-99), jv = new Float32Array(3 * JET), jage = new Float32Array(JET).fill(9);
+  const jgeo = new THREE.BufferGeometry(); jgeo.setAttribute('position', new THREE.BufferAttribute(jp, 3));
+  const jet = add(new THREE.Points(jgeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.09, transparent: true, opacity: 0.75, depthWrite: false })));
+  jet.frustumCulled = false;
+  state.sim = { kind: 'squish', ball, geo, pos32, mesh, mat, press, pressY: 6.5, pressPrev: 6.5, burstT: null, burstShown: false, peak: { kPa: 0, degC: 20, kN: 0 },
+    jet: { pts: jet, p: jp, v: jv, age: jage, next: 0, carry: 0 } };
+}
+function pressHeight(t) {
+  const top = 6.5, low = 0.6;
+  if (t < 1.4) return top;
+  if (t < 3.4) { const k = (t - 1.4) / 2.0; return top + (low - top) * (1 - Math.pow(1 - k, 2)); }
+  if (t < 4.6) return low;
+  if (t < 6.2) { const k = (t - 4.6) / 1.6; return low + (top - low) * k * k; }
+  return top;
+}
+function substepSquish(H) {
+  const s = state.sim, b = s.ball;
+  s.pressPrev = s.pressY;
+  s.pressY = pressHeight(state.simT);
+  if (state.simT >= 1.4) b.startSqueeze(); // from here on the squeeze is too quick for the air to lose heat
+  b.step(H, SCENES.squish.iters, world.g, s.pressY, s.pressPrev, 2.0);
+  if (!b.burst) {
+    const V = b.volume();
+    s.peak.kPa = Math.max(s.peak.kPa, (b.pressure(V) - AIR.pAtm) / 1000);
+    s.peak.degC = Math.max(s.peak.degC, b.temperature(V) - 273.15);
+    s.peak.kN = Math.max(s.peak.kN, b.pressF / 1000);
+  } else if (s.burstT === null) {
+    s.burstT = state.simT + H;
+    s.burstAt = { kPa: s.peak.kPa, degC: s.peak.degC, kN: s.peak.kN, pull: b.burstAt.tension / 1000 };
+  }
+}
+function afterSquish(dtDraw) {
+  const s = state.sim, b = s.ball;
+  if (s.burstT !== null && !s.burstShown) {
+    s.burstShown = true;
+    s.mat.color.set('#ff9b9b');
+    $('caption').textContent = 'BURST';
+  }
+  if (b.holeChanged) {
+    // the torn triangles are gone from the drawing too
+    b.holeChanged = false;
+    const out = new Uint32Array(b.intact.length * 3);
+    b.intact.forEach((t, k) => { out[3 * k] = b.idx[3 * t]; out[3 * k + 1] = b.idx[3 * t + 1]; out[3 * k + 2] = b.idx[3 * t + 2]; });
+    s.geo.setIndex(new THREE.BufferAttribute(out, 1));
+  }
+  s.press.position.y = s.pressY;
+  puffs(s, b, dtDraw);
+  s.pos32.set(b.p);
+  s.geo.attributes.position.needsUpdate = true;
+  s.geo.computeVertexNormals();
+  s.geo.computeBoundingSphere();
+  s.mat.wireframe = world.xray;
+}
+
+// Puffs of air leave the tear along its outward direction, as many as the air flow says.
+function puffs(s, b, dt) {
+  const J = s.jet, n = J.age.length;
+  if (b.burst && b.mdot > 0.05) {
+    b.jetMax = Math.max(b.jetMax, b.jetSpeed);
+    let cx = 0, cy = 0, cz = 0, k = 0;
+    for (let t = 0; t < b.nT; t++) {
+      if (!b.hole[t]) continue;
+      for (let q = 0; q < 3; q++) { const i = 3 * b.idx[3 * t + q]; cx += b.p[i]; cy += b.p[i + 1]; cz += b.p[i + 2]; k++; }
+    }
+    cx /= k; cy /= k; cz /= k;
+    let mx = 0, my = 0, mz = 0;
+    for (let i = 0; i < 3 * b.n; i += 3) { mx += b.p[i]; my += b.p[i + 1]; mz += b.p[i + 2]; }
+    mx /= b.n; my /= b.n; mz /= b.n;
+    let nx = cx - mx, ny = cy - my, nz = cz - mz; const l = Math.hypot(nx, ny, nz) || 1; nx /= l; ny /= l; nz /= l;
+    J.carry += Math.min(40, b.mdot * 6) * dt * 60;
+    const speed = 2 + Math.min(10, b.jetSpeed / 20);
+    for (; J.carry >= 1; J.carry--) {
+      const i = J.next; J.next = (J.next + 1) % n;
+      J.p[3 * i] = cx; J.p[3 * i + 1] = cy; J.p[3 * i + 2] = cz;
+      const sp = speed * (0.6 + 0.8 * rand()), jx = (rand() - 0.5) * 0.5, jy = (rand() - 0.5) * 0.5, jz = (rand() - 0.5) * 0.5;
+      J.v[3 * i] = (nx + jx) * sp; J.v[3 * i + 1] = (ny + jy) * sp; J.v[3 * i + 2] = (nz + jz) * sp; J.age[i] = 0;
+    }
+  }
+  for (let i = 0; i < n; i++) {
+    if (J.age[i] > 0.7) { J.p[3 * i + 1] = -99; continue; }
+    J.age[i] += dt; const drag = Math.exp(-2.5 * dt);
+    J.v[3 * i] *= drag; J.v[3 * i + 1] *= drag; J.v[3 * i + 2] *= drag;
+    J.p[3 * i] += J.v[3 * i] * dt; J.p[3 * i + 1] += J.v[3 * i + 1] * dt; J.p[3 * i + 2] += J.v[3 * i + 2] * dt;
+  }
+  J.pts.geometry.attributes.position.needsUpdate = true;
+}
+
+/* Jellybeans */
+const BOWL = { cx: 0, cy: 2.15, cz: 0, R: 2.0, t: 0.07, th: 0.15 };
+function buildBeansBalls(level) {
+  const N = SCENES.beans.levels[level].n;
+  const g = new Grains(N, BEAN_R, 1);
+  g.mu = 0.45; g.muK = 0.3; g.muG = 0.5; g.vmax = 15;
+  const beanGeo = new THREE.SphereGeometry(BEAN_R, 18, 12); beanGeo.scale(1.55, 0.95, 0.95);
+  const beans = add(new THREE.InstancedMesh(beanGeo, new THREE.MeshPhysicalMaterial({ roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.1 }), N));
+  const balls = add(new THREE.InstancedMesh(new THREE.SphereGeometry(BEAN_R, 16, 10), new THREE.MeshStandardMaterial({ roughness: 0.5 }), N));
+  const col = new THREE.Color();
+  for (const m of [beans, balls]) {
+    m.castShadow = true; m.receiveShadow = true; m.count = 0; m.frustumCulled = false; // bounds change every frame as beans pour in
+    for (let i = 0; i < N; i++) m.setColorAt(i, col.set(PALETTE[(i * 7 + 3) % PALETTE.length]));
+    m.instanceColor.needsUpdate = true;
+  }
+  const pts = [];
+  for (let i = 0; i <= 48; i++) { const a = (i / 48) * (Math.PI / 2); pts.push(new THREE.Vector2(Math.sin(a) * BOWL.R, BOWL.cy - Math.cos(a) * BOWL.R)); }
+  add(new THREE.Mesh(new THREE.LatheGeometry(pts, 96), new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.05, transmission: 0.92, thickness: 0.2, ior: 1.45, transparent: true, opacity: 0.55, side: THREE.DoubleSide })));
+  const rate = N <= 10 ? 7 : N <= 100 ? 45 : N <= 1000 ? 300 : 480;
+  state.sim = { kind: 'beans', g, beans, balls, N, rate, owed: 0, H: SCENES.beans.Hballs };
+}
+function bowlCollide(g, i) {
+  const k = 3 * i, p = g.p;
+  const dx = p[k] - BOWL.cx, dy = p[k + 1] - BOWL.cy, dz = p[k + 2] - BOWL.cz;
+  const d = Math.hypot(dx, dy, dz) || 1e-6;
+  const inner = BOWL.R - BOWL.t / 2 - g.r, outer = BOWL.R + BOWL.t / 2 + g.r;
+  if (p[k + 1] > BOWL.cy) {
+    const rad = Math.hypot(dx, dz);
+    if (rad < inner) g.inside[i] = 1; else if (rad > outer) g.inside[i] = 0;
+    return;
+  }
+  if (g.inside[i]) {
+    if (d > inner) { p[k] = BOWL.cx + (dx / d) * inner; p[k + 1] = BOWL.cy + (dy / d) * inner; p[k + 2] = BOWL.cz + (dz / d) * inner; }
+  } else if (d < outer) {
+    p[k] = BOWL.cx + (dx / d) * outer; p[k + 1] = BOWL.cy + (dy / d) * outer; p[k + 2] = BOWL.cz + (dz / d) * outer;
+  }
+}
+function substepBeans(H) {
+  if (state.sim.rigid) return substepBeansRigid(H);
+  const s = state.sim, g = s.g;
+  s.owed += s.rate * H;
+  let tries = 0;
+  while (s.owed >= 1 && g.alive < s.N && tries < 40) {
+    tries++;
+    const a = rand() * Math.PI * 2, rr = Math.sqrt(rand()) * 0.55;
+    const x = Math.cos(a) * rr, y = 6.0 + rand() * 1.2, z = Math.sin(a) * rr;
+    if (!g.roomAt(x, y, z)) continue; // only drop a bean where there is room for it
+    g.add(x, y, z, 0, -4, 0);
+    s.owed -= 1;
+  }
+  s.owed = Math.min(s.owed, 50);
+  g.integrate(H);
+  g.build();
+  for (let it = 0; it < SCENES.beans.iters; it++) {
+    g.solvePairs();
+    for (let i = 0; i < g.alive; i++) { g.ground(i); bowlCollide(g, i); }
+  }
+  g.finish(H);
+}
+function afterBeans(dt) {
+  const s = state.sim;
+  if (s.rigid) { drawRigid(s.bodies, s.beans); return; }
+  s.g.spin(dt);
+  drawGrains(s.g, s.beans, !world.xray);
+  drawGrains(s.g, s.balls, world.xray);
+}
+
+/* Wrecking ball */
+function buildWreckBalls(level) {
+  const M = SCENES.wreck.levels[level].M;
+  const r = 0.15, nz = 12, ny = 9, nx = 2;
+  const g = new Grains(nx * ny * nz, r, BLOCK_MASS);
+  g.mu = 0.6; g.muK = 0.4; g.muG = 0.5;
+  for (let y = 0; y < ny; y++) for (let z = 0; z < nz; z++) for (let x = 0; x < nx; x++) g.add(x * 2 * r, r + y * 2 * r, (z - (nz - 1) / 2) * 2 * r, 0, 0, 0, false);
+  const blocks = add(new THREE.InstancedMesh(new THREE.BoxGeometry(2 * r * 0.97, 2 * r * 0.97, 2 * r * 0.97), new THREE.MeshStandardMaterial({ roughness: 0.55 }), g.alive));
+  const balls = add(new THREE.InstancedMesh(new THREE.SphereGeometry(r, 16, 10), new THREE.MeshStandardMaterial({ roughness: 0.55 }), g.alive));
+  const col = new THREE.Color(), cubeColors = ['#f7f3e8', '#ffffff', '#efe6d6'];
+  for (const m of [blocks, balls]) {
+    m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false;
+    for (let i = 0; i < g.alive; i++) m.setColorAt(i, col.set(cubeColors[i % 3]));
+    m.instanceColor.needsUpdate = true;
+  }
+  const R = 0.6;
+  const ball = add(new THREE.Mesh(new THREE.SphereGeometry(R, 48, 32), new THREE.MeshStandardMaterial({ color: 0xd7dae2, metalness: 1, roughness: 0.12 })));
+  ball.castShadow = true;
+  state.sim = { kind: 'wreck', g, blocks, balls, ball, R, M, bp: new THREE.Vector3(-8, R, 0), bprev: new THREE.Vector3(-8, R, 0), bv: new THREE.Vector3(), launched: false, bq: new THREE.Quaternion(), bom: new THREE.Vector3(), H: SCENES.wreck.Hballs };
+}
+function substepWreck(H) {
+  if (state.sim.rigid) return substepWreckRigid(H);
+  const s = state.sim, g = s.g, G = world.g;
+  if (!s.launched && state.simT >= 0.8) { s.bv.set(BALL_SPEED, 0, 0); s.launched = true; }
+  const wb = 1 / s.M, Rr = s.R + g.r;
+  g.integrate(H);
+  s.bv.y -= G * H; s.bprev.copy(s.bp); s.bp.addScaledVector(s.bv, H);
+  g.build();
+  for (let it = 0; it < SCENES.wreck.iters; it++) {
+    g.solvePairs();
+    for (let i = 0; i < g.alive; i++) {
+      g.ground(i);
+      const kx = 3 * i, dx = g.p[kx] - s.bp.x, dy = g.p[kx + 1] - s.bp.y, dz = g.p[kx + 2] - s.bp.z;
+      const d2 = dx * dx + dy * dy + dz * dz;
+      if (d2 < Rr * Rr && d2 > 1e-12) {
+        const d = Math.sqrt(d2), corr = Rr - d, wsum = g.w[i] + wb;
+        const ci = (corr * g.w[i]) / wsum, cb = (corr * wb) / wsum;
+        g.p[kx] += (dx / d) * ci; g.p[kx + 1] += (dy / d) * ci; g.p[kx + 2] += (dz / d) * ci;
+        s.bp.x -= (dx / d) * cb; s.bp.y -= (dy / d) * cb; s.bp.z -= (dz / d) * cb;
+      }
+    }
+    if (s.bp.y < s.R) s.bp.y = s.R;
+  }
+  g.finish(H);
+  s.bv.subVectors(s.bp, s.bprev).divideScalar(H);
+  if (s.bp.y <= s.R + 1e-3) s.bom.set(s.bv.z / s.R, 0, -s.bv.x / s.R); // rolling
+}
+function afterWreck(dt) {
+  const s = state.sim;
+  if (s.rigid) {
+    const t = s.ball.translation(), q = s.ball.rotation();
+    s.ballMesh.position.set(t.x, t.y, t.z); s.ballMesh.quaternion.set(q.x, q.y, q.z, q.w); s.ballMesh.material.wireframe = world.xray;
+    drawRigid(s.blocks, s.blockMesh); return;
+  }
+  s.g.spin(dt);
+  const wl = s.bom.length();
+  if (wl > 1e-4) { tmpQ.setFromAxisAngle(tmpP.copy(s.bom).divideScalar(wl), wl * dt); s.bq.premultiply(tmpQ); }
+  s.ball.position.copy(s.bp); s.ball.quaternion.copy(s.bq);
+  drawGrains(s.g, s.blocks, !world.xray);
+  drawGrains(s.g, s.balls, world.xray);
+}
+
+/* Jellybeans and the wall with real shapes */
+function bowlMesh() {
+  // the glass: inner surface up to the rim, across the rim, outer surface back down
+  const pts = [], n = 48;
+  for (let i = 0; i <= n; i++) { const a = (i / n) * (Math.PI / 2); pts.push(new THREE.Vector2(Math.sin(a) * BOWL.R, BOWL.cy - Math.cos(a) * BOWL.R)); }
+  for (let i = n; i >= 0; i--) { const a = (i / n) * (Math.PI / 2), r = BOWL.R + BOWL.th; pts.push(new THREE.Vector2(Math.sin(a) * r, BOWL.cy - Math.cos(a) * r)); }
+  return add(new THREE.Mesh(new THREE.LatheGeometry(pts, 96), new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.05, transmission: 0.92, thickness: 0.2, ior: 1.45, transparent: true, opacity: 0.55, side: THREE.DoubleSide })));
+}
+function buildBeansRigid(level) {
+  const R = engine.R, N = SCENES.beans.levels[level].n, H = SCENES.beans.H, w = rigidWorld(H, 4);
+  // 384 solid curved tiles, 15 cm thick, outside the bowl's inner surface
+  const bowl = w.createRigidBody(R.RigidBodyDesc.fixed()), AR = 32, UP = 12;
+  for (let i = 0; i < UP; i++) for (let j = 0; j < AR; j++) {
+    const pts = [];
+    for (const ai of [i, i + 1]) for (const tj of [j, j + 1]) for (const rr of [BOWL.R, BOWL.R + BOWL.th]) {
+      const a = (ai / UP) * (Math.PI / 2), t = (tj / AR) * Math.PI * 2;
+      pts.push(Math.sin(t) * Math.sin(a) * rr, BOWL.cy - Math.cos(a) * rr, Math.cos(t) * Math.sin(a) * rr);
+    }
+    const d = R.ColliderDesc.convexHull(new Float32Array(pts));
+    if (d) w.createCollider(avg(d.setFriction(0.3).setRestitution(0.1)), bowl);
+  }
+  bowlMesh();
+  const beans = add(new THREE.InstancedMesh(new THREE.CapsuleGeometry(PILL_R, 2 * PILL_HALF, 6, 14), new THREE.MeshPhysicalMaterial({ roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.1 }), N));
+  const col = new THREE.Color();
+  beans.castShadow = true; beans.receiveShadow = true; beans.count = 0; beans.frustumCulled = false;
+  for (let i = 0; i < N; i++) beans.setColorAt(i, col.set(PALETTE[(i * 7 + 3) % PALETTE.length]));
+  beans.instanceColor.needsUpdate = true;
+  const rate = N <= 10 ? 7 : N <= 100 ? 45 : N <= 1000 ? 300 : 480;
+  state.sim = { kind: 'beans', rigid: true, w, bodies: [], beans, N, rate, owed: 0, H, beanMass: 0 };
+}
+const tmpE = new THREE.Euler();
+function substepBeansRigid(H) {
+  const s = state.sim, R = engine.R, b = s.bodies;
+  s.owed += s.rate * H;
+  let tries = 0;
+  while (s.owed >= 1 && b.length < s.N && tries < 40) {
+    tries++;
+    const a = rand() * Math.PI * 2, rr = Math.sqrt(rand()) * 0.9;
+    const x = Math.cos(a) * rr, y = 5.2 + rand() * 2.0, z = Math.sin(a) * rr;
+    let room = true; // only drop a bean where there is room for it
+    for (let k = Math.max(0, b.length - 150); k < b.length; k++) { const p = b[k].translation(); if ((p.x - x) ** 2 + (p.y - y) ** 2 + (p.z - z) ** 2 < 0.09) { room = false; break; } }
+    if (!room) continue;
+    tmpQ.setFromEuler(tmpE.set(rand() * 6.283, rand() * 6.283, rand() * 6.283));
+    // small damping stands in for rolling resistance and air drag, so a spilled bean comes to rest
+    const body = s.w.createRigidBody(R.RigidBodyDesc.dynamic().setTranslation(x, y, z).setLinvel(0, -4, 0).setRotation({ x: tmpQ.x, y: tmpQ.y, z: tmpQ.z, w: tmpQ.w }).setAngularDamping(0.5).setLinearDamping(0.05));
+    s.w.createCollider(avg(R.ColliderDesc.capsule(PILL_HALF, PILL_R).setDensity(BEAN_DENSITY).setFriction(0.5).setRestitution(0.2)), body);
+    b.push(body); s.owed -= 1;
+    if (!s.beanMass) s.beanMass = body.mass();
+  }
+  s.owed = Math.min(s.owed, 50);
+  stepRigid(s, H);
+}
+function buildWreckRigid(level) {
+  const R = engine.R, M = SCENES.wreck.levels[level].M, H = SCENES.wreck.H, w = rigidWorld(H, 4), a = BLOCK_A;
+  const blocks = [];
+  // Hand stacked: 3 mm between columns. Packed face to face with no gap, a hit column wedges against
+  // its neighbours and the engine moves the whole wall as one 54 kg piece (checked 2026-11-13).
+  for (let y = 0; y < 9; y++) for (let z = 0; z < 12; z++) for (let x = 0; x < 2; x++) {
+    const body = w.createRigidBody(R.RigidBodyDesc.dynamic().setTranslation(x * 2 * a, a + y * (2 * a + 0.001), (z - 5.5) * (2 * a + 0.003)));
+    w.createCollider(avg(R.ColliderDesc.cuboid(a, a, a).setMass(BLOCK_MASS).setFriction(0.6).setRestitution(0.1)), body);
+    blocks.push(body);
+  }
+  const BR = 0.6;
+  const ball = w.createRigidBody(R.RigidBodyDesc.dynamic().setTranslation(-8, BR, 0).setCcdEnabled(true));
+  w.createCollider(avg(R.ColliderDesc.ball(BR).setMass(M).setFriction(0.4).setRestitution(0.2)), ball);
+  const blockMesh = add(new THREE.InstancedMesh(new THREE.BoxGeometry(2 * a, 2 * a, 2 * a), new THREE.MeshStandardMaterial({ roughness: 0.55 }), blocks.length));
+  const col = new THREE.Color(), cubeColors = ['#f7f3e8', '#ffffff', '#efe6d6'];
+  blockMesh.castShadow = true; blockMesh.receiveShadow = true; blockMesh.frustumCulled = false;
+  for (let i = 0; i < blocks.length; i++) blockMesh.setColorAt(i, col.set(cubeColors[i % 3]));
+  blockMesh.instanceColor.needsUpdate = true;
+  const ballMesh = add(new THREE.Mesh(new THREE.SphereGeometry(BR, 48, 32), new THREE.MeshStandardMaterial({ color: 0xd7dae2, metalness: 1, roughness: 0.12 })));
+  ballMesh.castShadow = true;
+  state.sim = { kind: 'wreck', rigid: true, w, blocks, blockMesh, ball, ballMesh, M, R: BR, launched: false, H, start: null };
+}
+function substepWreckRigid(H) {
+  const s = state.sim;
+  if (!s.launched && state.simT >= 0.8) {
+    // where the settled wall stands at the launch: the yardstick for "moved" and for energy
+    s.start = s.blocks.map((b) => { const t = b.translation(); return [t.x, t.y, t.z]; });
+    s.ball.setLinvel({ x: BALL_SPEED, y: 0, z: 0 }, true);
+    s.ball.setAngvel({ x: 0, y: 0, z: -BALL_SPEED / s.R }, true); // rolling, not skidding
+    s.launched = true;
+  }
+  stepRigid(s, H);
+}
+
+function drawGrains(g, mesh, show) {
+  mesh.visible = show;
+  if (!show) return;
+  const n = g.alive;
+  for (let i = 0; i < n; i++) {
+    tmpP.set(g.p[3 * i], g.p[3 * i + 1], g.p[3 * i + 2]);
+    tmpQ.set(g.q[4 * i], g.q[4 * i + 1], g.q[4 * i + 2], g.q[4 * i + 3]);
+    tmpM.compose(tmpP, tmpQ, tmpS);
+    mesh.setMatrixAt(i, tmpM);
+  }
+  mesh.count = n;
+  mesh.instanceMatrix.needsUpdate = true;
+}
+
+/* ------------------------------------------------------------ live numbers */
+function results() {
+  const s = state.sim;
+  if (s.kind === 'squish') {
+    const b = s.ball, V = b.volume(), kPa = (b.pressure(V) - AIR.pAtm) / 1000, degC = b.temperature(V) - 273.15;
+    const kN = (x) => (x / 1000).toFixed(1), span = SKIN.tear * 1.15;
+    $('meterFill').style.width = `${Math.min(100, (b.maxT / span) * 100)}%`;
+    $('meterLimit').style.left = `${(SKIN.tear / span) * 100}%`;
+    $('meterL').textContent = `skin pull ${kN(b.maxT)} kN/m (most so far ${kN(b.maxTEver)})`;
+    $('meterR').textContent = `tears above ${kN(SKIN.tear)} kN/m`;
+    const F = Math.max(0, b.pressF), weight = F / 9.8;
+    const pushes = F < 50 ? 'Press: not touching.' : `Press pushing ${kN(F)} kN, the weight of ${weight >= 1000 ? `${(weight / 1000).toFixed(1)} tonnes` : `${fmt(weight)} kg`}.`;
+    const vol = `Volume ${V.toFixed(2)} m\u00b3, ${Math.round((V / b.V0) * 100)}% of its own size.`;
+    if (!b.sealed) return `Valve wide open: the air inside stays at room pressure, so only the skin pushes back. ${vol} ${pushes}`;
+    if (state.simT < 1.0) return `Settling on the mat. ${vol}`;
+    if (s.burstT !== null) {
+      const a = s.burstAt;
+      return `BURST at t = ${s.burstT.toFixed(2)} s with the air at ${a.kPa.toFixed(1)} kPa and ${a.degC.toFixed(0)} \u00b0C, the press at ${a.kN.toFixed(0)} kN. ` +
+        `Hole ${b.holeA >= 0.1 ? `${b.holeA.toFixed(2)} m\u00b2` : `${fmt(b.holeA * 10000)} cm\u00b2`}, air out at up to ${fmt(b.jetMax)} m/s, air left ${Math.round((b.mGas / b.mGas0) * 100)}%, now ${kPa.toFixed(1)} kPa and ${degC.toFixed(0)} \u00b0C. ${vol}`;
+    }
+    return `Air inside: ${kPa.toFixed(1)} kPa above room pressure, ${degC.toFixed(1)} \u00b0C (most so far ${s.peak.kPa.toFixed(1)} kPa, ${s.peak.degC.toFixed(0)} \u00b0C). ${vol} ${pushes}`;
+  }
+  if (s.kind === 'beans' && s.rigid) {
+    let inBowl = 0;
+    for (const b of s.bodies) { const t = b.translation(); if (Math.hypot(t.x, t.y - BOWL.cy, t.z) < BOWL.R) inBowl++; }
+    const kg = inBowl * s.beanMass, load = kg >= 1000 ? `${(kg / 1000).toFixed(1)} tonnes` : `${fmt(kg)} kg`;
+    return `Dropped ${fmt(s.bodies.length)} of ${fmt(s.N)}. In the bowl ${fmt(inBowl)}, ${load} of beans. On the floor ${fmt(s.bodies.length - inBowl)}.`;
+  }
+  if (s.kind === 'wreck' && s.rigid) {
+    const M = s.M, v = BALL_SPEED, I = 0.4 * M * s.R * s.R;
+    const pIn = M * v, eMove = 0.5 * M * v * v, eSpin = 0.5 * I * (v / s.R) ** 2;
+    const head = `Ball in: ${fmt(M)} kg rolling at ${v} m/s: ${fmt(pIn)} kg\u00b7m/s of momentum, ${fmt(eMove + eSpin)} J of energy (${fmt(eMove)} J moving, ${fmt(eSpin)} J spinning).`;
+    if (!s.launched) return head;
+    const bv = s.ball.linvel(), bw = s.ball.angvel(), by = s.ball.translation().y;
+    const eBall = 0.5 * M * (bv.x ** 2 + bv.y ** 2 + bv.z ** 2) + 0.5 * I * (bw.x ** 2 + bw.y ** 2 + bw.z ** 2) + M * world.g * (by - s.R);
+    const Ib = BLOCK_MASS * (2 * BLOCK_A) ** 2 / 6; // a solid cube
+    let pBlocks = 0, eBlocks = 0, lift = 0, shifted = 0, knocked = 0;
+    s.blocks.forEach((b, i) => {
+      const u = b.linvel(), w = b.angvel(), t = b.translation(), o = s.start[i];
+      pBlocks += BLOCK_MASS * u.x;
+      eBlocks += 0.5 * BLOCK_MASS * (u.x ** 2 + u.y ** 2 + u.z ** 2) + 0.5 * Ib * (w.x ** 2 + w.y ** 2 + w.z ** 2);
+      lift += BLOCK_MASS * world.g * (t.y - o[1]);
+      const d = Math.hypot(t.x - o[0], t.y - o[1], t.z - o[2]);
+      if (d > 0.02) shifted++;
+      if (d > 0.3) knocked++;
+    });
+    const heat = eMove + eSpin - eBall - eBlocks - lift;
+    const energy = lift < -0.5
+      ? `Energy in: ${fmt(eMove + eSpin)} J from the ball plus ${fmt(-lift)} J from cubes falling. Out: ball ${fmt(eBall)} J, cubes ${fmt(eBlocks)} J, heat and sound ${fmt(heat)} J.`
+      : `Energy in: ${fmt(eMove + eSpin)} J. Out: ball ${fmt(eBall)} J, cubes ${fmt(eBlocks)} J, ${lift > 0.5 ? `lifting cubes ${fmt(lift)} J, ` : ''}heat and sound ${fmt(heat)} J.`;
+    return `${head} Forward momentum now: ball ${fmt(M * bv.x)}, cubes ${fmt(pBlocks)}, taken by the floor ${fmt(pIn - M * bv.x - pBlocks)} kg\u00b7m/s. ` +
+      `${energy} Cubes shifted more than 2 cm: ${shifted}; knocked more than 30 cm: ${knocked} of ${s.blocks.length}.`;
+  }
+  if (s.kind === 'beans') {
+    const g = s.g; let inBowl = 0;
+    for (let i = 0; i < g.alive; i++) if (Math.hypot(g.p[3 * i], g.p[3 * i + 1] - BOWL.cy, g.p[3 * i + 2]) < BOWL.R) inBowl++;
+    return `Dropped ${fmt(g.alive)} of ${fmt(s.N)}. In the bowl ${fmt(inBowl)}. On the floor ${fmt(g.alive - inBowl)}.`;
+  }
+  const g = s.g, M = s.M;
+  let pBlocks = 0, moved = 0;
+  for (let i = 0; i < g.alive; i++) {
+    pBlocks += BLOCK_MASS * g.v[3 * i];
+    if (Math.hypot(g.p[3 * i] - g.start[3 * i], g.p[3 * i + 1] - g.start[3 * i + 1], g.p[3 * i + 2] - g.start[3 * i + 2]) > 0.15) moved++;
+  }
+  const pIn = M * BALL_SPEED, ke = 0.5 * M * BALL_SPEED * BALL_SPEED;
+  const head = `Ball in: ${fmt(M)} kg at ${BALL_SPEED} m/s = ${fmt(pIn)} kg·m/s of momentum, ${fmt(ke)} J of energy.`;
+  if (!s.launched) return head;
+  const pBall = M * s.bv.x;
+  return `${head} Now: ball ${fmt(pBall)}, blocks ${fmt(pBlocks)}, taken by the floor ${fmt(pIn - pBall - pBlocks)}. Blocks moved: ${g.alive ? moved : 0} of ${g.alive}.`;
+}
+
+/* ------------------------------------------------------------ flow */
+function setScene(name, level, opts = {}) {
+  const sceneChanged = name !== state.scene || opts.first;
+  clearScene();
+  state.scene = name; state.level = level; state.simT = 0; state.acc = 0; state.steps = 0;
+  rand = mulberry32(state.run * 1000 + level * 10 + ['squish', 'beans', 'wreck'].indexOf(name));
+  const cfg = SCENES[name];
+  bgGoal.set(cfg.bg);
+  if (opts.first) bgNow.set(cfg.bg);
+  const real = engine.state === 'ready';
+  if (name === 'squish') buildSquish(level);
+  else if (name === 'beans') (real ? buildBeansRigid : buildBeansBalls)(level);
+  else (real ? buildWreckRigid : buildWreckBalls)(level);
+  if (name !== 'squish' && !real) state.sim.waitingForEngine = engine.state === 'loading' || engine.state === 'idle';
+  $('caption').textContent = cfg.levels[level].label;
+  $('subcap').textContent = (name === 'squish' || real ? cfg.sub : cfg.subBalls) + (name === 'squish' || real ? '' : engine.state === 'off'
+    ? ' Ball version (?balls in the address): every body is a ball to the solver.'
+    : engine.state === 'failed'
+    ? ' Showing the simpler ball version: the real-shape engine could not load on this device.'
+    : ' Showing the simpler ball version while the real-shape engine loads (4 MB).');
+  $('meter').hidden = name !== 'squish';
+  $('howText').innerHTML = (name === 'squish' || real ? HOW[name] : HOW_BALLS[name]).map((t) => `<p>${t}</p>`).join('') + '<p>Every number on this page comes from the running simulation. Units: metres, kilograms, seconds.</p>';
+  if (sceneChanged) view.goal = { ...cfg.cam }; // a new scene gets its own view; a new level keeps yours
+  document.querySelectorAll('[data-scene]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.scene === name)));
+  renderLevels();
+}
+function renderLevels() {
+  const box = $('levels');
+  box.innerHTML = '';
+  SCENES[state.scene].levels.forEach((lv, i) => {
+    const b = document.createElement('button');
+    b.textContent = lv.label.replace(' GIANT JELLYBEANS', '');
+    b.setAttribute('aria-pressed', String(i === state.level));
+    b.setAttribute('aria-label', lv.label);
+    b.addEventListener('click', () => { setAuto(false); setScene(state.scene, i); });
+    box.appendChild(b);
+  });
+}
+function advance() {
+  const order = ['squish', 'beans', 'wreck'], cfg = SCENES[state.scene];
+  if (state.level < cfg.levels.length - 1) setScene(state.scene, state.level + 1);
+  else setScene(order[(order.indexOf(state.scene) + 1) % order.length], 0);
+}
+function nextLabel() {
+  const order = ['squish', 'beans', 'wreck'], cfg = SCENES[state.scene];
+  if (state.level < cfg.levels.length - 1) return cfg.levels[state.level + 1].label;
+  return SCENES[order[(order.indexOf(state.scene) + 1) % order.length]].levels[0].label;
+}
+function setAuto(on) { state.auto = on; $('auto').setAttribute('aria-pressed', String(on)); }
+function setPaused(on) { state.paused = on; $('pause').setAttribute('aria-pressed', String(on)); $('pause').textContent = on ? 'Play' : 'Pause'; }
+const SPEEDS = [1, 0.5, 0.25];
+function cycleSpeed() { state.speed = SPEEDS[(SPEEDS.indexOf(state.speed) + 1) % SPEEDS.length]; $('speed').textContent = `Speed ${state.speed === 1 ? '1' : state.speed === 0.5 ? '1/2' : '1/4'}x`; $('speed').setAttribute('aria-pressed', String(state.speed !== 1)); }
+function stepOnce() { setPaused(true); advanceSim(1 / 60); }
+function toggleXray() { world.xray = !world.xray; $('xray').setAttribute('aria-pressed', String(world.xray)); }
+function toggleMoon() { world.g = world.g === 9.8 ? 1.62 : 9.8; $('moon').setAttribute('aria-pressed', String(world.g !== 9.8)); }
+function resetView() { view.goal = { ...SCENES[state.scene].cam }; }
+
+document.querySelectorAll('[data-scene]').forEach((b) => b.addEventListener('click', () => { setAuto(false); setScene(b.dataset.scene, 0); }));
+$('auto').addEventListener('click', () => setAuto(!state.auto));
+$('replay').addEventListener('click', () => { setAuto(false); setScene(state.scene, state.level); });
+$('newrun').addEventListener('click', () => { setAuto(false); state.run += 1; setScene(state.scene, state.level); });
+$('pause').addEventListener('click', () => setPaused(!state.paused));
+$('step').addEventListener('click', stepOnce);
+$('speed').addEventListener('click', cycleSpeed);
+$('xray').addEventListener('click', toggleXray);
+$('moon').addEventListener('click', toggleMoon);
+$('resetview').addEventListener('click', resetView);
+window.addEventListener('keydown', (e) => {
+  if (e.target.closest && e.target.closest('button, summary, a')) return;
+  const k = e.key.toLowerCase();
+  if (k === ' ') { e.preventDefault(); setPaused(!state.paused); }
+  else if (k === '.') stepOnce();
+  else if (k === 's') cycleSpeed();
+  else if (k === 'r') { setAuto(false); setScene(state.scene, state.level); }
+  else if (k === 'n') { setAuto(false); state.run += 1; setScene(state.scene, state.level); }
+  else if (k === 'a') setAuto(!state.auto);
+  else if (k === 'x') toggleXray();
+  else if (k === 'm') toggleMoon();
+  else if (k === 'v') resetView();
+  else if (['1', '2', '3', '4'].includes(k)) { setAuto(false); setScene(state.scene, Number(k) - 1); }
+});
+
+/* ------------------------------------------------------------ camera */
+const view = { theta: 0.55, phi: 0.34, d: 11.5, ty: 0.9, goal: null };
+function applyView(dt) {
+  if (view.goal) {
+    const k = Math.min(1, dt * 2.2);
+    for (const key of ['theta', 'phi', 'd', 'ty']) view[key] += (view.goal[key] - view[key]) * k;
+    if (Math.abs(view.goal.d - view.d) < 0.01 && Math.abs(view.goal.theta - view.theta) < 0.002) view.goal = null;
+  }
+  // A portrait screen sees less sideways: back off to keep the same width in view, and aim a little
+  // lower so the scene sits in the clear top part of the screen, above the readouts.
+  const portrait = Math.min(1, Math.max(0, 1 / camera.aspect - 1));
+  const D = view.d * Math.min(1.7, Math.max(1, 1 / camera.aspect));
+  const ty = view.ty - portrait * 0.32 * D * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  const cp = Math.cos(view.phi);
+  camera.position.set(D * cp * Math.sin(view.theta), ty + D * Math.sin(view.phi), D * cp * Math.cos(view.theta));
+  camera.lookAt(0, ty, 0);
+}
+const ptrs = new Map(); let pinch0 = 0, pinchD = 0;
+canvas.addEventListener('pointerdown', (e) => { canvas.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); view.goal = null;
+  if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch0 = Math.hypot(a.x - b.x, a.y - b.y); pinchD = view.d; } });
+canvas.addEventListener('pointermove', (e) => {
+  const pr = ptrs.get(e.pointerId); if (!pr) return;
+  ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y); if (pinch0) view.d = Math.min(40, Math.max(3, (pinchD * pinch0) / d)); return; }
+  view.theta -= (e.clientX - pr.x) * 0.006;
+  view.phi = Math.min(1.35, Math.max(0.03, view.phi + (e.clientY - pr.y) * 0.004));
+});
+const endP = (e) => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch0 = 0; };
+canvas.addEventListener('pointerup', endP); canvas.addEventListener('pointercancel', endP);
+canvas.addEventListener('wheel', (e) => { e.preventDefault(); view.goal = null; view.d = Math.min(40, Math.max(3, view.d * Math.exp(e.deltaY * 0.0012))); }, { passive: false });
+
+function resize() {
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+
+/* ------------------------------------------------------------ the clock: fixed physics steps, independent of the screen */
+const MAX_FRAME = 1 / 30;
+let simMs = 0;
+function advanceSim(frameDt) {
+  const H = state.sim.H || SCENES[state.scene].H;
+  const want = frameDt * state.speed;
+  // 3,000 real beans can take longer than a frame to solve: then one step per frame, so the pour
+  // plays in steady slow motion (and says so) instead of stuttering through catch-up steps.
+  const cap = state.sim.rigid && state.scene === 'beans' ? H : MAX_FRAME;
+  state.acc += Math.min(want, cap);
+  state.behind = want > cap * 1.05 ? cap / want : 1; // under 1 when the computer cannot keep up
+  const t0 = performance.now();
+  let n = 0;
+  while (state.acc >= H - 1e-9) {
+    if (state.sim.kind === 'squish') substepSquish(H);
+    else if (state.sim.kind === 'beans') substepBeans(H);
+    else substepWreck(H);
+    state.simT += H; state.acc -= H; state.steps++; n++;
+  }
+  state.lastSteps = n;
+  simMs = simMs * 0.9 + (performance.now() - t0) * 0.1;
+  const drawDt = n * H;
+  if (state.sim.kind === 'squish') afterSquish(drawDt); else if (state.sim.kind === 'beans') afterBeans(drawDt); else afterWreck(drawDt);
+}
+
+let last = performance.now(), frames = 0, clock = 0, fps = 60;
+function frame(now, manual = false) {
+  const dt = Math.min(0.1, Math.max(0, (now - last) / 1000));
+  last = now;
+  if (!state.paused) advanceSim(dt);
+  fadeBackdrop(dt);
+  applyView(dt);
+  renderer.render(scene, camera);
+  if (state.auto && !state.paused) {
+    const left = SCENES[state.scene].length - state.simT;
+    $('next').textContent = `Auto is on. Next: ${nextLabel()} in ${Math.max(0, Math.ceil(left))} s`;
+    if (left <= 0) advance();
+  } else $('next').textContent = state.paused ? 'Paused. Press Step to move one frame.' : '';
+  frames++; clock += dt;
+  if (clock > 0.4) {
+    fps = frames / clock; frames = 0; clock = 0;
+    const s = state.sim;
+    const bodies = s.kind === 'squish' ? '642 points' : s.rigid ? `${plural(s.kind === 'beans' ? s.bodies.length : s.blocks.length + 1, 'real shape', 'real shapes')} (Rapier)` : plural(s.g.alive, 'body', 'bodies');
+    const rate = state.speed !== 1 ? ` · speed ${state.speed}x` : state.behind < 0.98 ? ` · running at ${state.behind.toFixed(2)}x (this device is behind)` : '';
+    $('stats').textContent = `${Math.round(fps)} fps · run ${state.run} · t = ${state.simT.toFixed(2)} s · ${bodies} · ${plural(state.lastSteps, 'physics step', 'physics steps')} a frame · ${simMs.toFixed(1)} ms${rate}${world.g !== 9.8 ? ' · Moon gravity 1.62 m/s²' : ''}`;
+    $('results').textContent = results();
+  }
+  if (!manual) requestAnimationFrame(frame);
+}
+
+resize();
+setScene('squish', 0, { first: true });
+Object.assign(view, SCENES.squish.cam);
+renderer.compile(scene, camera);
+
+// test hook for headless checks
+window.satisfyingLab = {
+  run(n = 60) { for (let i = 0; i < n; i++) frame(last + 1000 / 60, true); return $('stats').textContent; },
+  stage(name, level, run = 1) { setAuto(false); setPaused(false); state.run = run; setScene(name, level); return SCENES[name].levels[level].label; },
+  setBurst() { return { tearNm: SKIN.tear, E: SKIN.E, t: SKIN.t }; },
+  engine() { return engine.state + (engine.error ? `: ${engine.error}` : ''); },
+  sim() { return state.sim; }, // for timing checks only
+  ready() { return loadEngine().then(() => engine.state); },
+  plateCheck() {
+    const s = state.sim; if (s.kind !== 'squish') return null;
+    const p = s.ball.p; let above = 0, under = 0, minY = 9, maxY = 0;
+    for (let i = 0; i < s.ball.n; i++) {
+      const x = p[3 * i], y = p[3 * i + 1], z = p[3 * i + 2];
+      minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+      if (Math.abs(x) < 2.0 && Math.abs(z) < 2.0) { if (y > s.pressY) above++; else under++; }
+    }
+    return { t: +state.simT.toFixed(3), pressY: +s.pressY.toFixed(3), above, under, minY: +minY.toFixed(3), maxY: +maxY.toFixed(3) };
+  },
+  probe() {
+    const s = state.sim;
+    if (s.kind === 'squish') {
+      const b = s.ball, V = b.volume(); let ok = true; for (const x of b.p) if (!Number.isFinite(x)) { ok = false; break; }
+      return { kind: s.kind, finite: ok, t: +state.simT.toFixed(3), volume: +(V / b.V0).toFixed(3), kPa: +((b.pressure(V) - AIR.pAtm) / 1000).toFixed(2), degC: +(b.temperature(V) - 273.15).toFixed(1),
+        pressKN: +(b.pressF / 1000).toFixed(1), pullKNm: +(b.maxT / 1000).toFixed(2), maxPullKNm: +(b.maxTEver / 1000).toFixed(2), burst: b.burst, burstT: s.burstT && +s.burstT.toFixed(3),
+        peak: s.peak, holeCm2: Math.round(b.holeA * 1e4), airLeft: b.sealed ? +(b.mGas / b.mGas0).toFixed(3) : null, pressY: +s.pressY.toFixed(2), first: Array.from(b.p.slice(0, 3)).map((x) => +x.toFixed(5)) };
+    }
+    if (s.rigid) {
+      const bodies = s.kind === 'beans' ? s.bodies : s.blocks; let ok = true, inBowl = 0;
+      for (const b of bodies) { const t = b.translation(); if (!Number.isFinite(t.y)) ok = false; if (s.kind === 'beans' && Math.hypot(t.x, t.y - BOWL.cy, t.z) < BOWL.R) inBowl++; }
+      const f = bodies.length ? bodies[0].translation() : { x: 0, y: 0, z: 0 };
+      const out = { kind: s.kind, rigid: true, alive: bodies.length, finite: ok, t: +state.simT.toFixed(3), first: [f.x, f.y, f.z].map((x) => +x.toFixed(5)), results: results() };
+      if (s.kind === 'beans') { out.inBowl = inBowl; out.beanKg = +s.beanMass.toFixed(2); }
+      if (s.kind === 'wreck') { const v = s.ball.linvel(), t = s.ball.translation(); out.ballVx = +v.x.toFixed(3); out.ballX = +t.x.toFixed(3); }
+      return out;
+    }
+    const g = s.g; let ok = true, inBowl = 0;
+    for (let i = 0; i < g.alive; i++) { if (!Number.isFinite(g.p[3 * i + 1])) { ok = false; break; } if (s.kind === 'beans' && Math.hypot(g.p[3 * i], g.p[3 * i + 1] - BOWL.cy, g.p[3 * i + 2]) < BOWL.R) inBowl++; }
+    const out = { kind: s.kind, alive: g.alive, finite: ok, t: +state.simT.toFixed(3), first: Array.from(g.p.slice(0, 3)).map((x) => +x.toFixed(5)), results: results() };
+    if (s.kind === 'beans') out.inBowl = inBowl;
+    if (s.kind === 'wreck') { out.ballVx = +s.bv.x.toFixed(3); out.ballX = +s.bp.x.toFixed(3); }
+    return out;
+  },
+};
+
+requestAnimationFrame((t) => { last = t; frame(t); });
+setTimeout(loadEngine, 300); // fetch the real-shape engine once the first frames are up
+</script>
+</body>
+</html>
