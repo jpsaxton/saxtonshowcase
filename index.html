@@ -87,6 +87,8 @@ body.ship .draft-banner{display:none}body.ship [data-draft]::after,body.ship [da
 .phones figcaption{font:400 11px var(--mono);color:var(--white);padding:8px 10px;text-transform:uppercase}
 .labels{list-style:none;padding:0;margin:4px 0 0;display:flex;flex-wrap:wrap;gap:8px}
 .labels li{font:400 11px var(--mono);background:var(--white);border:1.5px solid var(--ink);padding:5px 8px}
+.sys{list-style:none;padding:0;margin:16px 0 0;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.sys li{font-size:18px;line-height:1.4;border-top:3px solid var(--ink);padding-top:10px}
 .names{list-style:none;padding:18px;margin:16px 0 4px;background:var(--purple);border:2px solid var(--ink);columns:2;column-gap:20px}
 .names li{font:800 clamp(24px,3.2vw,38px)/1.15 var(--display);color:var(--pink);letter-spacing:-.02em}
 .names li:nth-child(even){color:var(--yellow)}
@@ -129,6 +131,7 @@ footer a{display:inline-block;padding:6px 2px;min-height:28px}
  .film{width:min(300px,82%)}
  .cards{grid-template-columns:1fr}.card,.card.wide{transform:none}
  .phones{gap:8px}.phones figure{border-radius:12px}.phones figcaption{font-size:9px;padding:6px}
+ .sys{grid-template-columns:1fr}
 }
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 </style>
@@ -182,6 +185,22 @@ footer a{display:inline-block;padding:6px 2px;min-height:28px}
      <figure><img src="/img/app-barney-home.jpg" width="420" height="474" alt="Barney on an iPhone: places in the house and what is in each room." loading="lazy"><figcaption>Barney</figcaption></figure>
     </div>
     <ul class="labels"><li>missed calls</li><li>our owners app</li><li>home records app</li></ul>
+   </article>
+
+   <article class="card wide">
+    <span class="tag">Agent run desks</span>
+    <h3>More than apps</h3>
+    <p>We made more than just those apps.</p>
+    <div class="phones">
+     <figure><img src="/img/sys-newspaper-hall.jpg" width="420" height="474" alt="Newspaper Hall on an iPhone: a fresh paper every hour, the shelf of papers by the hour." loading="lazy"><figcaption>Newspaper Hall</figcaption></figure>
+     <figure><img src="/img/sys-print-station.jpg" width="420" height="474" alt="Print Station on an iPhone: what is on the printer now and what is next in line." loading="lazy"><figcaption>Print Station</figcaption></figure>
+     <figure><img src="/img/sys-talk-it-out.jpg" width="420" height="474" alt="Talk It Out: pick a topic and talk it out with my agent." loading="lazy"><figcaption>Talk It Out</figcaption></figure>
+    </div>
+    <ul class="sys">
+     <li>The Newspaper Hall is a full process end to end agent driven.</li>
+     <li>The Print Station is our own print queue and design studio with a fully running gym.</li>
+     <li>The talk to me zone where I can talk to my agent about all the things that are better left talked through. Like that friend you would bounce ideas off that's no longer here.</li>
+    </ul>
    </article>
 
    <article class="card">
